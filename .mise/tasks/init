@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#MISE description="Initialize a threads file from template"
+#USAGE flag "--force" help="Overwrite header only in existing file"
+#USAGE flag "--file <file>" help="Path to threads file"
+set -euo pipefail
+
+TEMPLATE_FILE="$MISE_CONFIG_ROOT/templates/HUMAN.md"
+THREADS_PATH=$("$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "${usage_file:-}")
+
+if [ ! -f "$TEMPLATE_FILE" ]; then
+  echo "Error: template not found at $TEMPLATE_FILE" >&2
+  exit 1
+fi
+
+MARKER="--- HEADER END ---"
+
+if [ -f "$THREADS_PATH" ]; then
+  if [ "${usage_force:-}" != "true" ]; then
+    echo "File already exists at $THREADS_PATH" >&2
+    echo "Use --force to update the header only (threads are preserved)." >&2
+    exit 1
+  fi
+
+  # Force mode: replace header, keep threads
+  TEMPLATE_CONTENT=$(cat "$TEMPLATE_FILE")
+  EXISTING_CONTENT=$(cat "$THREADS_PATH")
+
+  # Extract template header (everything up to and including the marker)
+  if ! echo "$TEMPLATE_CONTENT" | grep -Fq -- "$MARKER"; then
+    echo "Error: template missing '$MARKER'" >&2
+    exit 1
+  fi
+  NEW_HEADER=$(echo "$TEMPLATE_CONTENT" | sed -n "1,/$MARKER/p")
+
+  # Extract existing body (everything after the marker)
+  if echo "$EXISTING_CONTENT" | grep -Fq -- "$MARKER"; then
+    EXISTING_BODY=$(echo "$EXISTING_CONTENT" | sed "1,/$MARKER/d")
+  else
+    # No marker in existing file — treat entire content as body
+    EXISTING_BODY=$'\n'"$EXISTING_CONTENT"
+  fi
+
+  printf '%s%s' "$NEW_HEADER" "$EXISTING_BODY" > "$THREADS_PATH"
+  echo "Updated header in $THREADS_PATH (threads preserved)."
+else
+  # Fresh init
+  mkdir -p "$(dirname "$THREADS_PATH")"
+  cp "$TEMPLATE_FILE" "$THREADS_PATH"
+  echo "Initialized threads file at $THREADS_PATH"
+fi

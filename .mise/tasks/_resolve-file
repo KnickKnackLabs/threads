@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+#MISE description="Resolve the threads file path"
+#MISE hide=true
+# Usage: THREADS_PATH=$("$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" [path])
+#
+# Resolution order:
+# 1. Argument passed directly (from --file flag)
+# 2. THREADS_FILE env var
+# 3. ./HUMAN.md in caller's directory
+
+set -euo pipefail
+
+FILE="${1:-${THREADS_FILE:-}}"
+
+if [ -z "$FILE" ]; then
+  CALLER_DIR="${CALLER_PWD:-$(pwd)}"
+  FILE="$CALLER_DIR/HUMAN.md"
+fi
+
+echo "$FILE"

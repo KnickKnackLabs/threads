@@ -1,0 +1,195 @@
+#!/usr/bin/env bats
+bats_require_minimum_version 1.5.0
+
+setup() {
+  load helpers
+}
+
+# --- split_header_body ---
+
+@test "parser: splits at header marker" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import split_header_body
+h, b = split_header_body('# Title\n--- HEADER END ---\nbody')
+assert h == '# Title\n--- HEADER END ---', f'header: {h!r}'
+assert b == '\nbody', f'body: {b!r}'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: no marker returns None header" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import split_header_body
+h, b = split_header_body('no marker here')
+assert h is None
+assert b == 'no marker here'
+"
+  [ "$status" -eq 0 ]
+}
+
+# --- parse_threads ---
+
+@test "parser: extracts note thread" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import parse_threads
+_, threads = parse_threads('\n> [!note]- Title\n> Content\n')
+assert len(threads) == 1
+assert threads[0][0] == 'note'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: extracts warning thread" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import parse_threads
+_, threads = parse_threads('\n> [!warning]- Title 👈\n> Content\n')
+assert len(threads) == 1
+assert threads[0][0] == 'warning'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: extracts success thread" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import parse_threads
+_, threads = parse_threads('\n> [!success]- Title\n> Content\n')
+assert len(threads) == 1
+assert threads[0][0] == 'success'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: handles multiple threads" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import parse_threads
+body = '''
+> [!note]- First
+> Content A
+
+> [!warning]- Second
+> Content B
+
+> [!success]- Third
+> Content C
+'''
+_, threads = parse_threads(body)
+assert len(threads) == 3
+assert [t[0] for t in threads] == ['note', 'warning', 'success']
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: preserves multi-paragraph content" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import parse_threads
+body = '''
+> [!note]- Multi
+> **[Or]** Para one.
+>
+> Para two.
+>
+> ---
+>
+> **[junior]** Reply.
+'''
+_, threads = parse_threads(body)
+assert len(threads) == 1
+# Should have all lines including blank continuation lines
+lines = threads[0][1]
+assert any('Para two' in l for l in lines)
+"
+  [ "$status" -eq 0 ]
+}
+
+# --- extract_authors / extract_message_senders ---
+
+@test "parser: extracts authors from body" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import extract_authors
+lines = ['**[Or]** Hello.', '', '---', '', '**[junior]** Reply.']
+authors = extract_authors(lines)
+assert authors == ['Or', 'junior'], f'got: {authors}'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: arrow chain yields last name as author" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import extract_authors
+lines = ['**[Or → Zeke]** Rewritten message.']
+authors = extract_authors(lines)
+assert authors == ['Zeke'], f'got: {authors}'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: message senders yields first name in chain" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import extract_message_senders
+lines = ['**[Or → Zeke]** Rewritten message.']
+senders = extract_message_senders(lines)
+assert senders == ['Or'], f'got: {senders}'
+"
+  [ "$status" -eq 0 ]
+}
+
+# --- thread_waiting_on ---
+
+@test "parser: Or last sender means waiting on agent" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import thread_waiting_on
+assert thread_waiting_on('note', ['Or']) == 'agent'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: agent last sender means waiting on Or" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import thread_waiting_on
+assert thread_waiting_on('note', ['Or', 'junior']) == 'Or'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: success thread is resolved" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import thread_waiting_on
+assert thread_waiting_on('success', ['Or']) == 'resolved'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: no authors returns dash" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import thread_waiting_on
+assert thread_waiting_on('note', []) == '—'
+"
+  [ "$status" -eq 0 ]
+}
+
+# --- thread_title ---
+
+@test "parser: extracts title from opener" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import thread_title
+assert thread_title('> [!warning]- Urgent thing 👈') == 'Urgent thing'
+assert thread_title('> [!note]- Simple title') == 'Simple title'
+assert thread_title('> [!success]- Done (resolved)') == 'Done (resolved)'
+"
+  [ "$status" -eq 0 ]
+}
