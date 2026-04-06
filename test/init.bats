@@ -20,7 +20,7 @@ setup() {
 
 @test "init: created file contains threads task references" {
   threads init --file "$THREADS_PATH"
-  grep -q "threads list" "$THREADS_PATH"
+  grep -q "threads fmt" "$THREADS_PATH"
   grep -q "threads archive" "$THREADS_PATH"
 }
 

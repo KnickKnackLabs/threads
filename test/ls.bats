@@ -6,35 +6,35 @@ setup() {
   setup_test_dir
 }
 
-@test "list: shows threads with status" {
+@test "ls: shows threads with status" {
   write_threads "$THREAD_WARNING" "$THREAD_NOTE" "$THREAD_SUCCESS"
 
-  run threads list --file "$THREADS_PATH"
+  run threads ls --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
   [[ "$output" == *"Urgent thing"* ]]
   [[ "$output" == *"Test thread"* ]]
   [[ "$output" == *"Done thing"* ]]
 }
 
-@test "list: shows no threads message" {
+@test "ls: shows no threads message" {
   write_threads_file ""
 
-  run threads list --file "$THREADS_PATH"
+  run threads ls --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
   [[ "$output" == *"No threads found"* ]]
 }
 
-@test "list: shows participants" {
+@test "ls: shows participants" {
   write_threads "$THREAD_NOTE"
 
-  run threads list --file "$THREADS_PATH"
+  run threads ls --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
   [[ "$output" == *"Or"* ]]
   [[ "$output" == *"junior"* ]]
 }
 
-@test "list: missing file gives helpful error" {
-  run threads list --file "$TEST_DIR/nonexistent.md"
+@test "ls: missing file gives helpful error" {
+  run threads ls --file "$TEST_DIR/nonexistent.md"
   [ "$status" -ne 0 ]
   [[ "$output" == *"No threads file found"* ]]
 }
