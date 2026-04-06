@@ -1,17 +1,14 @@
 """Shared parser for HUMAN.md thread management.
 
-Parses Obsidian-style callout threads ([!note], [!warning], [!success])
-from HUMAN.md files. Used by shimmer human:threads:* tasks.
-
-Note: [!info] callouts are intentionally excluded — they're used for
-the instruction block in the HUMAN.md header, not for conversation threads.
+Parses Obsidian-style callout threads ([!info], [!note], [!warning], [!success])
+from HUMAN.md files.
 """
 
 import re
 
 HEADER_MARKER = "--- HEADER END ---"
 
-CALLOUT_OPENER = re.compile(r"^> \[!(note|warning|success)\][+-]?\s*")
+CALLOUT_OPENER = re.compile(r"^> \[!(info|note|warning|success)\][+-]?\s*")
 # Matches [Name] or **[Name]** or **[Name1 → Name2]** etc.
 # Uses greedy match and includes digits for names like x1f9, k7r2.
 NAME_PAT = re.compile(r"^(?:\*\*)?\[([A-Za-z0-9][A-Za-z0-9 →\-]*)\](?:\*\*)?")

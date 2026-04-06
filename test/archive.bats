@@ -57,12 +57,12 @@ setup() {
   [ ! -f "$ARCHIVE_PATH" ]
 }
 
-@test "archive: handles no header marker" {
+@test "archive: handles file with no threads" {
   echo "Just some text" > "$THREADS_PATH"
 
   run threads archive --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"No header marker"* ]]
+  [[ "$output" == *"No resolved threads"* ]]
 }
 
 @test "archive: preserves multiple unresolved threads" {

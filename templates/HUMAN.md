@@ -13,5 +13,3 @@
 > **Arrow notation:** `**[Or → agent]**` means Or's words, rewritten by agent.
 >
 > **Management:** `threads fmt` to format and sort. `threads ls` to list. `threads archive` to move resolved threads out.
-
---- HEADER END ---

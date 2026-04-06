@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #MISE description="Initialize a threads file from template"
-#USAGE flag "--force" help="Overwrite header only in existing file"
+#USAGE flag "--force" help="Replace preamble and info threads, preserve other threads"
 #USAGE flag "--file <file>" help="Path to threads file"
 set -euo pipefail
 
@@ -12,36 +12,41 @@ if [ ! -f "$TEMPLATE_FILE" ]; then
   exit 1
 fi
 
-MARKER="--- HEADER END ---"
-
 if [ -f "$THREADS_PATH" ]; then
   if [ "${usage_force:-}" != "true" ]; then
     echo "File already exists at $THREADS_PATH" >&2
-    echo "Use --force to update the header only (threads are preserved)." >&2
+    echo "Use --force to update preamble and info threads (other threads preserved)." >&2
     exit 1
   fi
 
-  # Force mode: replace header, keep threads
-  TEMPLATE_CONTENT=$(cat "$TEMPLATE_FILE")
-  EXISTING_CONTENT=$(cat "$THREADS_PATH")
+  # Force mode: take preamble + info threads from template, keep other threads from existing
+  TEMPLATE_PATH="$TEMPLATE_FILE" EXISTING_PATH="$THREADS_PATH" \
+    PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
+import os
+from human_threads import parse_threads
 
-  # Extract template header (everything up to and including the marker)
-  if ! echo "$TEMPLATE_CONTENT" | grep -Fq -- "$MARKER"; then
-    echo "Error: template missing '$MARKER'" >&2
-    exit 1
-  fi
-  NEW_HEADER=$(echo "$TEMPLATE_CONTENT" | sed -n "1,/$MARKER/p")
+template = open(os.environ["TEMPLATE_PATH"]).read()
+existing = open(os.environ["EXISTING_PATH"]).read()
 
-  # Extract existing body (everything after the marker)
-  if echo "$EXISTING_CONTENT" | grep -Fq -- "$MARKER"; then
-    EXISTING_BODY=$(echo "$EXISTING_CONTENT" | sed "1,/$MARKER/d")
-  else
-    # No marker in existing file — treat entire content as body
-    EXISTING_BODY=$'\n'"$EXISTING_CONTENT"
-  fi
+# Parse both files (no header splitting needed)
+tmpl_preamble, tmpl_threads = parse_threads(template)
+_, existing_threads = parse_threads(existing)
 
-  printf '%s%s' "$NEW_HEADER" "$EXISTING_BODY" > "$THREADS_PATH"
-  echo "Updated header in $THREADS_PATH (threads preserved)."
+# Keep template's preamble and info threads, existing's non-info threads
+tmpl_info = [(k, l) for k, l in tmpl_threads if k == "info"]
+existing_non_info = [(k, l) for k, l in existing_threads if k != "info"]
+
+# Reassemble
+preamble = "\n".join(tmpl_preamble).rstrip("\n")
+output = preamble + "\n"
+for _kind, tlines in tmpl_info + existing_non_info:
+    output += "\n" + "\n".join(tlines) + "\n"
+
+with open(os.environ["EXISTING_PATH"], "w") as f:
+    f.write(output)
+PYEOF
+
+  echo "Updated $THREADS_PATH (preamble and info threads replaced, other threads preserved)."
 else
   # Fresh init
   mkdir -p "$(dirname "$THREADS_PATH")"

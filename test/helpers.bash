@@ -30,10 +30,6 @@ write_threads_file() {
   local body="${1:-}"
   cat > "$THREADS_PATH" <<EOF
 # HUMAN
-
-Test scratchpad.
-
---- HEADER END ---
 ${body}
 EOF
 }
