@@ -107,7 +107,7 @@ if threads:
                 if new_kind == "warning" and "\U0001f448" not in new_opener:
                     new_opener = new_opener.rstrip() + " \U0001f448"
                 elif new_kind != "warning" and "\U0001f448" in new_opener:
-                    new_opener = re.sub(r"\s*\U0001f448\s*", "", new_opener)
+                    new_opener = re.sub(r"\s*\U0001f448\s*", " ", new_opener).rstrip()
                 lines = [new_opener] + lines[1:]
 
         new_threads.append((new_kind, lines))
