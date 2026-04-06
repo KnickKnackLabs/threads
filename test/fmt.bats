@@ -52,7 +52,7 @@ no authors here
   [ "$status" -eq 0 ]
   [[ "$output" == *"demoted"* ]]
   run cat "$THREADS_PATH"
-  [[ "$output" == *"[!note]"* ]]
+  [[ "$output" == *"[!note]- Was urgent"* ]]
   [[ "$output" != *"👈"* ]]
 }
 
