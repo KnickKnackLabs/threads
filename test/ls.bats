@@ -33,6 +33,17 @@ setup() {
   [[ "$output" == *"junior"* ]]
 }
 
+@test "ls: shows word-based status labels" {
+  write_threads "$THREAD_INFO" "$THREAD_WARNING" "$THREAD_NOTE" "$THREAD_SUCCESS"
+
+  run threads ls --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"info"* ]]
+  [[ "$output" == *"attention"* ]]
+  [[ "$output" == *"active"* ]]
+  [[ "$output" == *"resolved"* ]]
+}
+
 @test "ls: missing file gives helpful error" {
   run threads ls --file "$TEST_DIR/nonexistent.md"
   [ "$status" -ne 0 ]

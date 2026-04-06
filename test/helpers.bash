@@ -62,6 +62,9 @@ THREAD_WARNING='> [!warning]- Urgent thing 👈
 THREAD_SUCCESS='> [!success]- Done thing (resolved Mar 15)
 > Completed successfully.'
 
+THREAD_INFO='> [!info]- How this works
+> Instructions for using this file.'
+
 THREAD_AGENT_WAITING='> [!note]- Agent should respond
 > **[Or]** What do you think?'
 
