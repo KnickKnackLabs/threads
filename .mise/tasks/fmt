@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-#MISE description="Tidy threads: convert raw codeblocks to callouts, promote/demote types"
+#MISE description="Format threads: convert codeblocks, promote/demote, sort"
 #USAGE flag "--file <file>" help="Path to threads file"
+#USAGE flag "--check" help="Check mode: report issues, exit non-zero if changes needed"
 set -euo pipefail
 
 THREADS_PATH=$("$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "${usage_file:-}")
@@ -10,8 +11,10 @@ if [ ! -f "$THREADS_PATH" ]; then
   exit 1
 fi
 
-HUMAN_PATH="$THREADS_PATH" PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
-import re, os
+CHECK_MODE="${usage_check:-false}"
+
+HUMAN_PATH="$THREADS_PATH" CHECK_MODE="$CHECK_MODE" PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
+import re, os, sys
 from human_threads import (
     NAME_PAT, CALLOUT_OPENER,
     split_header_body, parse_threads,
@@ -19,7 +22,9 @@ from human_threads import (
 )
 
 filepath = os.environ["HUMAN_PATH"]
-content = open(filepath).read()
+check_mode = os.environ.get("CHECK_MODE", "false") == "true"
+original = open(filepath).read()
+content = original
 changes = []
 
 # --- Phase 1: Convert raw codeblocks to callout threads ---
@@ -65,14 +70,11 @@ if converted > 0:
     changes.append(f"converted {converted} codeblock{s}")
 
 # --- Phase 2: Promote/demote thread callout types based on waiting-on ---
-# waiting on Or → warning (bubbles to top after sort)
-# waiting on agent → note (sinks below warnings after sort)
-# success threads are never touched
 
 header, body = split_header_body(content)
 if header is None:
-    import sys
     print("No header marker found — skipping promote/demote.", file=sys.stderr)
+
 if header is not None:
     preamble_lines, threads = parse_threads(body)
 
@@ -98,14 +100,12 @@ if header is not None:
             demoted += 1
 
         if new_kind != kind:
-            # Rewrite the opener line with the new callout type
             opener = lines[0]
             m = CALLOUT_OPENER.match(opener)
             if m:
                 prefix = opener[:m.start(1)]
                 suffix = opener[m.end(1):]
                 new_opener = prefix + new_kind + suffix
-                # Add 👈 for warnings, remove for demotions
                 if new_kind == "warning" and "\U0001f448" not in new_opener:
                     new_opener = new_opener.rstrip() + " \U0001f448"
                 elif new_kind != "warning" and "\U0001f448" in new_opener:
@@ -114,25 +114,40 @@ if header is not None:
 
         new_threads.append((new_kind, lines))
 
-    if promoted > 0 or demoted > 0:
-        # Reassemble the file
-        preamble = "\n".join(preamble_lines).rstrip("\n")
-        new_body = preamble + "\n"
-        for _kind, tlines in new_threads:
-            new_body += "\n" + "\n".join(tlines) + "\n"
-        content = header + new_body
-
     if promoted > 0:
         changes.append(f"promoted {promoted} to warning")
     if demoted > 0:
         changes.append(f"demoted {demoted} to note")
 
-# --- Write if changed ---
+    # --- Phase 3: Sort threads by type ---
+    # info=0 (pinned), warning=1, note=2, success=3
+    sort_key = {"info": 0, "warning": 1, "note": 2, "success": 3}
+    sorted_threads = sorted(new_threads, key=lambda t: sort_key.get(t[0], 2))
+
+    if sorted_threads != new_threads:
+        changes.append("sorted")
+
+    # Reassemble
+    preamble = "\n".join(preamble_lines).rstrip("\n")
+    new_body = preamble + "\n"
+    for _kind, tlines in sorted_threads:
+        new_body += "\n" + "\n".join(tlines) + "\n"
+    content = header + new_body
+
+# --- Output ---
+
+if check_mode:
+    if changes:
+        print(f"Would change: {', '.join(changes)}.")
+        sys.exit(1)
+    else:
+        print("Clean.")
+        sys.exit(0)
 
 if changes:
     with open(filepath, "w") as f:
         f.write(content)
-    print(f"Tidied: {', '.join(changes)}.")
+    print(f"Formatted: {', '.join(changes)}.")
 else:
-    print("Nothing to tidy.")
+    print("Nothing to format.")
 PYEOF
