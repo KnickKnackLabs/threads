@@ -4,6 +4,7 @@ Parses Obsidian-style callout threads ([!info], [!note], [!warning], [!success])
 from HUMAN.md files.
 """
 
+import os
 import re
 
 HEADER_MARKER = "--- HEADER END ---"
@@ -214,17 +215,30 @@ def thread_title(opener_line):
     return title
 
 
-def thread_waiting_on(kind, authors):
+def _resolve_human_name(human_name=None):
+    """Resolve the human name from argument, env var, or None.
+
+    Priority: explicit argument > THREADS_HUMAN env var > None.
+    When None, waiting-on logic is disabled (no turn-taking).
+    """
+    if human_name is not None:
+        return human_name
+    return os.environ.get("THREADS_HUMAN")
+
+
+def thread_waiting_on(kind, authors, human_name=None):
     """Determine who the thread is waiting on.
 
-    Returns 'resolved', 'agent', 'Or', or '\u2014'.
-    # TODO: "Or" is hardcoded as the human name. Generalize when
-    # multiple humans or configurable names are needed.
+    Returns 'resolved', 'agent', the human name, or '\u2014'.
+    The human name is resolved from the explicit argument or the
+    THREADS_HUMAN env var. If neither is set, turn-taking is
+    disabled and all active threads return '\u2014'.
     """
+    human = _resolve_human_name(human_name)
     if kind == "success":
         return "resolved"
-    if not authors:
+    if not authors or human is None:
         return "\u2014"
-    if authors[-1] == "Or":
+    if authors[-1] == human:
         return "agent"
-    return "Or"
+    return human

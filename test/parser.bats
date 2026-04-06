@@ -145,18 +145,20 @@ assert senders == ['Or'], f'got: {senders}'
 
 # --- thread_waiting_on ---
 
-@test "parser: Or last sender means waiting on agent" {
+@test "parser: human last sender means waiting on agent" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys, os; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+os.environ['THREADS_HUMAN'] = 'Or'
 from human_threads import thread_waiting_on
 assert thread_waiting_on('note', ['Or']) == 'agent'
 "
   [ "$status" -eq 0 ]
 }
 
-@test "parser: agent last sender means waiting on Or" {
+@test "parser: agent last sender means waiting on human" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys, os; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+os.environ['THREADS_HUMAN'] = 'Or'
 from human_threads import thread_waiting_on
 assert thread_waiting_on('note', ['Or', 'junior']) == 'Or'
 "
@@ -177,6 +179,29 @@ assert thread_waiting_on('success', ['Or']) == 'resolved'
 import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
 from human_threads import thread_waiting_on
 assert thread_waiting_on('note', []) == '—'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: no human configured returns dash for all active threads" {
+  run python3 -c "
+import sys, os; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+os.environ.pop('THREADS_HUMAN', None)
+from human_threads import thread_waiting_on
+assert thread_waiting_on('note', ['Or', 'junior']) == '—'
+assert thread_waiting_on('warning', ['junior']) == '—'
+assert thread_waiting_on('success', ['Or']) == 'resolved'
+"
+  [ "$status" -eq 0 ]
+}
+
+@test "parser: explicit human_name argument overrides env" {
+  run python3 -c "
+import sys, os; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+os.environ['THREADS_HUMAN'] = 'Or'
+from human_threads import thread_waiting_on
+assert thread_waiting_on('note', ['Alice'], human_name='Alice') == 'agent'
+assert thread_waiting_on('note', ['junior'], human_name='Alice') == 'Alice'
 "
   [ "$status" -eq 0 ]
 }
