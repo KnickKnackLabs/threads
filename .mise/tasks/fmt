@@ -7,7 +7,7 @@ set -euo pipefail
 THREADS_PATH=$("$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "${usage_file:-}")
 
 if [ ! -f "$THREADS_PATH" ]; then
-  echo "No threads file found at $THREADS_PATH — run: threads init" >&2
+  echo "No threads file found at $THREADS_PATH — run: threads template HUMAN > HUMAN.md" >&2
   exit 1
 fi
 

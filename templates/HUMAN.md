@@ -1,3 +1,6 @@
+---
+description: Default async scratchpad for human-agent conversations
+---
 # HUMAN
 
 > [!info]- How this works
