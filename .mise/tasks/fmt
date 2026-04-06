@@ -118,8 +118,8 @@ if threads:
         changes.append(f"demoted {demoted} to note")
 
     # --- Phase 3: Sort threads by type ---
-    sort_key = {"warning": 0, "note": 1, "success": 2}
-    sorted_threads = sorted(new_threads, key=lambda t: sort_key.get(t[0], 2))
+    sort_key = {"info": 0, "warning": 1, "note": 2, "success": 3}
+    sorted_threads = sorted(new_threads, key=lambda t: sort_key.get(t[0], 3))
 
     if sorted_threads != new_threads:
         changes.append("sorted")
