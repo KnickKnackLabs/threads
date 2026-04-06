@@ -26,7 +26,7 @@ if not threads:
     print("NO_THREADS")
 else:
     # Participants column encodes roles: + = started thread, * = last sender
-    print("\t".join([" ", "Thread", "Participants", "Waiting on"]))
+    print("\t".join(["Status", "Thread", "Participants", "Waiting on"]))
     for kind, lines in threads:
         title = thread_title(lines[0])
         body_lines = extract_thread_body(lines)
@@ -46,12 +46,8 @@ else:
                 suffix += "*"
             annotated.append(name + suffix)
 
-        if kind == "warning":
-            status = "\U0001f448"
-        elif kind == "success":
-            status = "\u2713"
-        else:
-            status = " "
+        status_map = {"info": "info", "warning": "attention", "note": "active", "success": "resolved"}
+        status = status_map.get(kind, kind)
 
         print("\t".join([
             status,
