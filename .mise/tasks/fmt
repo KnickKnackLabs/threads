@@ -72,18 +72,16 @@ if converted > 0:
 # --- Phase 2: Promote/demote thread callout types based on waiting-on ---
 
 header, body = split_header_body(content)
-if header is None:
-    print("No header marker found — skipping promote/demote.", file=sys.stderr)
+preamble_lines, threads = parse_threads(body)
 
-if header is not None:
-    preamble_lines, threads = parse_threads(body)
+if threads:
 
     promoted = 0
     demoted = 0
     new_threads = []
 
     for kind, lines in threads:
-        if kind == "success":
+        if kind in ("info", "success"):
             new_threads.append((kind, lines))
             continue
 
@@ -131,7 +129,7 @@ if header is not None:
     new_body = preamble + "\n"
     for _kind, tlines in sorted_threads:
         new_body += "\n" + "\n".join(tlines) + "\n"
-    content = header + new_body
+    content = (header or "") + new_body
 
 # --- Output ---
 

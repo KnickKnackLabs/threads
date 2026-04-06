@@ -13,9 +13,9 @@ setup() {
   [[ "$output" == *"Initialized"* ]]
 }
 
-@test "init: created file contains header marker" {
+@test "init: created file contains info callout" {
   threads init --file "$THREADS_PATH"
-  grep -q "HEADER END" "$THREADS_PATH"
+  grep -q "\[!info\]" "$THREADS_PATH"
 }
 
 @test "init: created file contains threads task references" {
@@ -41,7 +41,7 @@ setup() {
 
   run threads init --force --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"Updated header"* ]]
+  [[ "$output" == *"Updated"* ]]
 
   # Thread should be preserved
   grep -q "My thread" "$THREADS_PATH"

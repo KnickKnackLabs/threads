@@ -151,6 +151,37 @@ no authors here
   [ "$before" = "$after" ]
 }
 
+# --- Info callouts ---
+
+@test "fmt: info callouts sort before warnings" {
+  local info_thread='> [!info]- Instructions
+> How to use this file.'
+  local stable_warning='> [!warning]- Or needs to respond \U0001f448
+> **[Or]** Started a thought.
+>
+> ---
+>
+> **[junior]** Here is my reply.'
+  write_threads "$stable_warning" "$info_thread"
+  run threads fmt --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  content=$(cat "$THREADS_PATH")
+  local info_pos warning_pos
+  info_pos=$(echo "$content" | grep -n '!info' | head -1 | cut -d: -f1)
+  warning_pos=$(echo "$content" | grep -n '!warning' | head -1 | cut -d: -f1)
+  [ "$info_pos" -lt "$warning_pos" ]
+}
+
+@test "fmt: does not promote/demote info callouts" {
+  local info_thread='> [!info]- Instructions
+> **[Or]** This is info, not a conversation.'
+  write_threads "$info_thread"
+  run threads fmt --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  content=$(cat "$THREADS_PATH")
+  [[ "$content" == *"[!info]"* ]]
+}
+
 # --- Combined operations ---
 
 @test "fmt: converts codeblock and sorts in one pass" {
