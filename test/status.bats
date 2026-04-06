@@ -7,6 +7,7 @@ setup() {
 }
 
 @test "status: counts threads by waiting-on" {
+  export THREADS_HUMAN=Or
   write_threads "$THREAD_AGENT_WAITING" "$THREAD_OR_WAITING" "$THREAD_SUCCESS"
 
   run threads status --file "$THREADS_PATH"

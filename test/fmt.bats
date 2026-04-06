@@ -30,7 +30,8 @@ no authors here
 
 # --- Promote/demote (from tidy) ---
 
-@test "fmt: promotes to warning when waiting on Or" {
+@test "fmt: promotes to warning when waiting on human" {
+  export THREADS_HUMAN=Or
   write_threads "$THREAD_OR_WAITING"
   run threads fmt --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
@@ -41,6 +42,7 @@ no authors here
 }
 
 @test "fmt: demotes to note when waiting on agent" {
+  export THREADS_HUMAN=Or
   local thread='> [!warning]- Was urgent 👈
 > **[Or]** Question?
 >
@@ -54,6 +56,16 @@ no authors here
   run cat "$THREADS_PATH"
   [[ "$output" == *"[!note]- Was urgent"* ]]
   [[ "$output" != *"👈"* ]]
+}
+
+@test "fmt: no promotion/demotion without THREADS_HUMAN" {
+  unset THREADS_HUMAN 2>/dev/null || true
+  write_threads "$THREAD_OR_WAITING"
+  run threads fmt --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Nothing to format"* ]]
+  run cat "$THREADS_PATH"
+  [[ "$output" == *"[!note]"* ]]
 }
 
 @test "fmt: does not touch success threads" {
@@ -193,6 +205,7 @@ no authors here
 }
 
 @test "fmt: promotes and sorts in one pass" {
+  export THREADS_HUMAN=Or
   write_threads "$THREAD_SUCCESS" "$THREAD_OR_WAITING"
   run threads fmt --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
