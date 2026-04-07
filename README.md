@@ -5,7 +5,7 @@
 **Manage threaded conversations in a single markdown file.**
 
 Parse, format, and archive [Obsidian-style callout](https://help.obsidian.md/callouts) threads.
-The async communication layer between humans and agents.
+The async communication layer for humans and agents.
 
 ![lang: bash + python](https://img.shields.io/badge/lang-bash%20%2B%20python-4EAA25?style=flat&logo=gnubash&logoColor=white)
 [![tests: 54 passing](https://img.shields.io/badge/tests-54%20passing-brightgreen?style=flat)](test/)
@@ -67,9 +67,7 @@ threads fmt              # convert codeblocks, promote/demote, sort
 threads ls               # see who's waiting on whom
 threads status           # one-line summary
 threads archive          # move resolved threads to archive
-
-# See available templates
-threads template
+threads template          # list available templates
 ```
 
 ## How it works
@@ -104,6 +102,9 @@ $ threads ls
 $ threads fmt
 Formatted: promoted 1 to warning, sorted.
 
+$ threads status
+4 threads: 1 waiting on agent, 1 waiting on Or, 1 resolved, 1 no messages
+
 $ threads archive
 Archived 1 resolved thread(s) to HUMAN.archive.md.
 ```
@@ -132,7 +133,7 @@ cd threads && mise trust && mise install
 mise run test
 ```
 
-**54 tests** across 6 suites. The parser is 245 lines of Python in `lib/human_threads.py`. Tasks are bash scripts that call into the parser for the heavy lifting. Templates use [farts](https://github.com/KnickKnackLabs/farts) for frontmatter.
+**54 tests** across 6 suites. The parser is 244 lines of Python in `lib/human_threads.py`. Tasks are bash scripts that call into the parser for the heavy lifting. Templates use [farts](https://github.com/KnickKnackLabs/farts) for frontmatter.
 
 <details>
 <summary><b>Project structure</b></summary>

@@ -30,7 +30,7 @@ const testSrc = testFiles
 const testCount = [...testSrc.matchAll(/@test "/g)].length;
 
 const parserLines = readFileSync(join(LIB_DIR, "human_threads.py"), "utf-8")
-  .split("\n").length;
+  .trimEnd().split("\n").length;
 
 const templateDir = join(ROOT, "templates");
 const templateCount = readdirSync(templateDir).filter((f) => f.endsWith(".md")).length;
@@ -51,7 +51,7 @@ const readme = (
       <Paragraph>
         {"Parse, format, and archive "}
         <Link href="https://help.obsidian.md/callouts">Obsidian-style callout</Link>
-        {" threads.\nThe async communication layer between humans and agents."}
+        {" threads.\nThe async communication layer for humans and agents."}
       </Paragraph>
 
       <Badges>
@@ -114,9 +114,7 @@ const readme = (
         "threads ls               # see who's waiting on whom",
         "threads status           # one-line summary",
         "threads archive          # move resolved threads to archive",
-        "",
-        "# See available templates",
-        "threads template",
+        "threads template          # list available templates",
       ].join("\n")}</CodeBlock>
     </Section>
 
@@ -191,6 +189,9 @@ const readme = (
         "",
         "$ threads fmt",
         "Formatted: promoted 1 to warning, sorted.",
+        "",
+        "$ threads status",
+        "4 threads: 1 waiting on agent, 1 waiting on Or, 1 resolved, 1 no messages",
         "",
         "$ threads archive",
         "Archived 1 resolved thread(s) to HUMAN.archive.md.",
