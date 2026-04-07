@@ -9,6 +9,7 @@ import {
   Badge, Badges, Center, Section, Details,
   List, Item,
   Raw, HtmlLink, Sub,
+  HtmlTable, HtmlTr, HtmlTd, Align,
 } from "readme/src/components";
 
 // ── Dynamic data ─────────────────────────────────────────────
@@ -108,23 +109,22 @@ const readme = (
         {", callouts render as collapsible, color-coded blocks:"}
       </Paragraph>
 
-      <Paragraph>
-        <Bold>HUMAN.md</Bold>
-        {" — async scratchpad between a human and their agents:"}
-      </Paragraph>
-
-      <Image src="assets/human.png" alt="HUMAN.md rendered in Obsidian — info, warning, note, and success callouts with conversation threads" />
-
-      <LineBreak />
-
-      <Paragraph>
-        <Bold>BULLETIN.md</Bold>
-        {" — cross-team bulletin board with action items:"}
-      </Paragraph>
-
-      <Image src="assets/bulletin.png" alt="BULLETIN.md rendered in Obsidian — info, warning, note, and success callouts for team announcements" />
-
-      <LineBreak />
+      <HtmlTable>
+        <HtmlTr>
+          <HtmlTd width="50%" valign="top">
+            <Align align="center">
+              <Raw>{`<a href="assets/human.png"><img src="assets/human.png" alt="HUMAN.md rendered in Obsidian" width="400" /></a>`}</Raw>
+              <Raw>{`<br /><b>HUMAN.md</b> — human ↔ agent scratchpad`}</Raw>
+            </Align>
+          </HtmlTd>
+          <HtmlTd width="50%" valign="top">
+            <Align align="center">
+              <Raw>{`<a href="assets/bulletin.png"><img src="assets/bulletin.png" alt="BULLETIN.md rendered in Obsidian" width="400" /></a>`}</Raw>
+              <Raw>{`<br /><b>BULLETIN.md</b> — cross-team bulletin board`}</Raw>
+            </Align>
+          </HtmlTd>
+        </HtmlTr>
+      </HtmlTable>
     </Section>
 
     <Section title="Quick start">
