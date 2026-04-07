@@ -2,8 +2,12 @@
 quiet = true
 task_output = "interleave"
 
+[plugins]
+shiv = "https://github.com/KnickKnackLabs/vfox-shiv"
+
 [tools]
 bats = "1.13.0"
 gum = "latest"
 python = "3"
+"shiv:farts" = "v0.1.0"
 usage = "latest"

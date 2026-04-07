@@ -1,3 +1,6 @@
+---
+description: Default async scratchpad for human-agent conversations
+---
 # HUMAN
 
 > [!info]- How this works
@@ -13,3 +16,5 @@
 > **Arrow notation:** `**[Or → agent]**` means Or's words, rewritten by agent.
 >
 > **Management:** `threads fmt` to format and sort. `threads ls` to list. `threads archive` to move resolved threads out.
+>
+> **Updating:** If this template changes, diff your file against `threads template HUMAN` and merge what you need. The template is small — manual merge is straightforward.

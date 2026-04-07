@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#MISE description="List available templates or output a named template"
+#USAGE arg "[name]" help="Template name (omit to list available templates)"
+set -euo pipefail
+
+TEMPLATES_DIR="$MISE_CONFIG_ROOT/templates"
+name="${usage_name:-}"
+
+if [ -z "$name" ]; then
+  # List available templates
+  gum style --bold "Available templates"
+  echo
+
+  for f in "$TEMPLATES_DIR"/*.md; do
+    [ -f "$f" ] || continue
+    tname="$(basename "$f" .md)"
+    desc="$(farts get description "$f" 2>/dev/null || echo "")"
+    if [ -n "$desc" ]; then
+      echo "  $(gum style --bold "$tname")  $(gum style --faint "$desc")"
+    else
+      echo "  $(gum style --bold "$tname")"
+    fi
+  done
+
+  echo
+  gum style --faint "Usage: threads template <name> > file.md"
+else
+  template="$TEMPLATES_DIR/${name}.md"
+  if [ ! -f "$template" ]; then
+    echo "Unknown template: $name" >&2
+    echo "Run 'threads template' to see available templates." >&2
+    exit 1
+  fi
+  farts body "$template"
+fi
