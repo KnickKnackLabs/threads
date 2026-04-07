@@ -53,6 +53,18 @@ $ cat HUMAN.md
 
 <br />
 
+## What it looks like
+
+Threads are plain markdown — but in [Obsidian](https://obsidian.md), callouts render as collapsible, color-coded blocks:
+
+**HUMAN.md** — async scratchpad between a human and their agents:
+
+![HUMAN.md rendered in Obsidian — info, warning, note, and success callouts with conversation threads](assets/human.png)<br />
+
+**BULLETIN.md** — cross-team bulletin board with action items:
+
+![BULLETIN.md rendered in Obsidian — info, warning, note, and success callouts for team announcements](assets/bulletin.png)<br />
+
 ## Quick start
 
 ```bash

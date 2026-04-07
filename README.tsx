@@ -5,7 +5,7 @@ import { join, resolve } from "path";
 
 import {
   Heading, Paragraph, CodeBlock, LineBreak, HR,
-  Bold, Italic, Code, Link,
+  Bold, Italic, Code, Link, Image,
   Badge, Badges, Center, Section, Details,
   List, Item,
   Raw, HtmlLink, Sub,
@@ -100,6 +100,32 @@ const readme = (
     ].join("\n")}</CodeBlock>
 
     <LineBreak />
+
+    <Section title="What it looks like">
+      <Paragraph>
+        {"Threads are plain markdown — but in "}
+        <Link href="https://obsidian.md">Obsidian</Link>
+        {", callouts render as collapsible, color-coded blocks:"}
+      </Paragraph>
+
+      <Paragraph>
+        <Bold>HUMAN.md</Bold>
+        {" — async scratchpad between a human and their agents:"}
+      </Paragraph>
+
+      <Image src="assets/human.png" alt="HUMAN.md rendered in Obsidian — info, warning, note, and success callouts with conversation threads" />
+
+      <LineBreak />
+
+      <Paragraph>
+        <Bold>BULLETIN.md</Bold>
+        {" — cross-team bulletin board with action items:"}
+      </Paragraph>
+
+      <Image src="assets/bulletin.png" alt="BULLETIN.md rendered in Obsidian — info, warning, note, and success callouts for team announcements" />
+
+      <LineBreak />
+    </Section>
 
     <Section title="Quick start">
       <CodeBlock lang="bash">{[
