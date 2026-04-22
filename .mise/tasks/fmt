@@ -17,7 +17,7 @@ HUMAN_PATH="$THREADS_PATH" CHECK_MODE="$CHECK_MODE" PYTHONPATH="$MISE_CONFIG_ROO
 import re, os, sys
 from human_threads import (
     NAME_PAT, CALLOUT_OPENER,
-    split_header_body, parse_threads,
+    parse_threads,
     extract_thread_body, extract_message_senders, thread_waiting_on,
 )
 
@@ -71,8 +71,7 @@ if converted > 0:
 
 # --- Phase 2: Promote/demote thread callout types based on waiting-on ---
 
-header, body = split_header_body(content)
-preamble_lines, threads = parse_threads(body)
+preamble_lines, threads = parse_threads(content)
 
 if threads:
 
@@ -129,7 +128,7 @@ if threads:
     new_body = preamble + "\n"
     for _kind, tlines in sorted_threads:
         new_body += "\n" + "\n".join(tlines) + "\n"
-    content = (header or "") + new_body
+    content = new_body
 
 # --- Output ---
 

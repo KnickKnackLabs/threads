@@ -5,28 +5,30 @@ setup() {
   load helpers
 }
 
-# --- split_header_body ---
+# --- _resolve-file ---
 
-@test "parser: splits at header marker" {
-  run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
-from human_threads import split_header_body
-h, b = split_header_body('# Title\n--- HEADER END ---\nbody')
-assert h == '# Title\n--- HEADER END ---', f'header: {h!r}'
-assert b == '\nbody', f'body: {b!r}'
-"
+@test "_resolve-file: absolute path passes through" {
+  run bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "/tmp/absolute/HUMAN.md"
   [ "$status" -eq 0 ]
+  [ "$output" = "/tmp/absolute/HUMAN.md" ]
 }
 
-@test "parser: no marker returns None header" {
-  run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
-from human_threads import split_header_body
-h, b = split_header_body('no marker here')
-assert h is None
-assert b == 'no marker here'
-"
+@test "_resolve-file: relative path resolves against CALLER_PWD" {
+  run env CALLER_PWD="/tmp/caller" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "notes/BULLETIN.md"
   [ "$status" -eq 0 ]
+  [ "$output" = "/tmp/caller/notes/BULLETIN.md" ]
+}
+
+@test "_resolve-file: no arg defaults to CALLER_PWD/HUMAN.md" {
+  run env CALLER_PWD="/tmp/caller" THREADS_FILE= bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file"
+  [ "$status" -eq 0 ]
+  [ "$output" = "/tmp/caller/HUMAN.md" ]
+}
+
+@test "_resolve-file: THREADS_FILE env is also CWD-relative" {
+  run env CALLER_PWD="/tmp/caller" THREADS_FILE="notes/B.md" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file"
+  [ "$status" -eq 0 ]
+  [ "$output" = "/tmp/caller/notes/B.md" ]
 }
 
 # --- parse_threads ---
