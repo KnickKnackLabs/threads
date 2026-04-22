@@ -13,14 +13,13 @@ fi
 output=$(HUMAN_PATH="$THREADS_PATH" PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
 import os
 from human_threads import (
-    split_header_body, parse_threads, extract_thread_body,
+    parse_threads, extract_thread_body,
     extract_authors, extract_message_senders, extract_all_participants,
     extract_thread_starter, thread_title, thread_waiting_on,
 )
 
 content = open(os.environ["HUMAN_PATH"]).read()
-header, body = split_header_body(content)
-_, threads = parse_threads(body)
+_, threads = parse_threads(content)
 
 if not threads:
     print("NO_THREADS")

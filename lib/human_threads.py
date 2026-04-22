@@ -7,26 +7,11 @@ from HUMAN.md files.
 import os
 import re
 
-HEADER_MARKER = "--- HEADER END ---"
-
 CALLOUT_OPENER = re.compile(r"^> \[!(info|note|warning|success)\][+-]?\s*")
 # Matches [Name] or **[Name]** or **[Name1 → Name2]** etc.
 # Uses greedy match and includes digits for names like x1f9, k7r2.
 NAME_PAT = re.compile(r"^(?:\*\*)?\[([A-Za-z0-9][A-Za-z0-9 →\-]*)\](?:\*\*)?")
 ARROW_SEP = re.compile(r"\s*→\s*")
-
-
-def split_header_body(content):
-    """Split content at the header marker.
-
-    Returns (header, body) where header includes the marker line.
-    If no marker found, returns (None, content).
-    """
-    idx = content.find(HEADER_MARKER)
-    if idx < 0:
-        return None, content
-    end = idx + len(HEADER_MARKER)
-    return content[:end], content[end:]
 
 
 def parse_threads(body):

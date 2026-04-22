@@ -11,10 +11,12 @@
 set -euo pipefail
 
 FILE="${1:-${THREADS_FILE:-}}"
+CALLER_DIR="${CALLER_PWD:-$(pwd)}"
 
 if [ -z "$FILE" ]; then
-  CALLER_DIR="${CALLER_PWD:-$(pwd)}"
   FILE="$CALLER_DIR/HUMAN.md"
+elif [ "${FILE#/}" = "$FILE" ]; then
+  FILE="$CALLER_DIR/$FILE"
 fi
 
 echo "$FILE"

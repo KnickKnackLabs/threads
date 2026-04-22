@@ -13,13 +13,12 @@ fi
 HUMAN_PATH="$THREADS_PATH" PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
 import os
 from human_threads import (
-    split_header_body, parse_threads, extract_thread_body,
+    parse_threads, extract_thread_body,
     extract_message_senders, thread_waiting_on,
 )
 
 content = open(os.environ["HUMAN_PATH"]).read()
-_, body = split_header_body(content)
-_, threads = parse_threads(body)
+_, threads = parse_threads(content)
 
 counts = {"agent": 0, "or": 0, "resolved": 0, "unknown": 0}
 

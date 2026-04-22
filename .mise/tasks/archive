@@ -16,14 +16,13 @@ ARCHIVE_PATH="${THREADS_PATH%.md}.archive.md"
 HUMAN_PATH="$THREADS_PATH" ARCHIVE_PATH="$ARCHIVE_PATH" PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
 import os
 from datetime import date
-from human_threads import split_header_body, parse_threads
+from human_threads import parse_threads
 
 human_path = os.environ["HUMAN_PATH"]
 archive_path = os.environ["ARCHIVE_PATH"]
 
 content = open(human_path).read()
-header, body = split_header_body(content)
-preamble_lines, threads = parse_threads(body)
+preamble_lines, threads = parse_threads(content)
 
 kept = [(k, l) for k, l in threads if k != "success"]
 resolved = [(k, l) for k, l in threads if k == "success"]
@@ -53,7 +52,7 @@ for _kind, tlines in kept:
     new_body += "\n" + "\n".join(tlines) + "\n"
 
 with open(human_path, "w") as f:
-    f.write((header or "") + new_body)
+    f.write(new_body)
 
 s = "s" if len(resolved) != 1 else ""
 print(f"Archived {len(resolved)} resolved thread{s} to {os.path.basename(archive_path)}.")
