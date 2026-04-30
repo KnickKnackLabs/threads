@@ -50,22 +50,46 @@ def replace_codeblock(match):
         return match.group(0)
 
     title = "TODO: title this thread"
-    callout_lines = [f"> [!note]- {title}"]
-    first_message = True
+    # Raw pasted transcripts are usually written oldest-first. Threads use
+    # newest-first order, so convert whole message blocks in reverse.
+    message_blocks = []
+    current_block = []
+    leading_lines = []
+
     for line in lines:
         stripped = line.strip()
-        if stripped == "":
-            callout_lines.append(">")
-        elif NAME_PAT.match(stripped):
-            if not first_message:
-                callout_lines.append(">")
-                callout_lines.append("> ---")
-                callout_lines.append(">")
-            bolded = NAME_PAT.sub(lambda name: f"**[{name.group(1)}]**", stripped)
-            callout_lines.append(f"> {bolded}")
-            first_message = False
+        if NAME_PAT.match(stripped):
+            if current_block:
+                message_blocks.append(current_block)
+            current_block = [line]
+        elif current_block:
+            current_block.append(line)
         else:
-            callout_lines.append(f"> {line}")
+            leading_lines.append(line)
+
+    if current_block:
+        message_blocks.append(current_block)
+
+    if leading_lines and message_blocks:
+        message_blocks[0] = leading_lines + message_blocks[0]
+
+    callout_lines = [f"> [!note]- {title}"]
+    first_message = True
+    for block in reversed(message_blocks):
+        if not first_message:
+            callout_lines.append(">")
+            callout_lines.append("> ---")
+            callout_lines.append(">")
+        for line in block:
+            stripped = line.strip()
+            if stripped == "":
+                callout_lines.append(">")
+            elif NAME_PAT.match(stripped):
+                bolded = NAME_PAT.sub(lambda name: f"**[{name.group(1)}]**", stripped)
+                callout_lines.append(f"> {bolded}")
+            else:
+                callout_lines.append(f"> {line}")
+        first_message = False
 
     converted += 1
     return "\n".join(callout_lines) + "\n"

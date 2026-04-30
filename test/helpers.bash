@@ -50,13 +50,14 @@ ${thread}
 }
 
 # --- Standard thread fixtures ---
+# Messages inside a thread are newest-first: add replies at the top.
 
 THREAD_NOTE='> [!note]- Test thread (Mar 15)
-> **[Or]** This is a test note.
+> **[junior]** Noted.
 >
 > ---
 >
-> **[junior]** Noted.'
+> **[Or]** This is a test note.'
 
 THREAD_WARNING='> [!warning]- Urgent thing 👈
 > **[Or]** This needs attention.'
@@ -71,22 +72,22 @@ THREAD_AGENT_WAITING='> [!note]- Agent should respond
 > **[Or]** What do you think?'
 
 THREAD_OR_WAITING='> [!note]- Or should respond
-> **[Or]** Starting thought.
+> **[junior]** Here is my response.
 >
 > ---
 >
-> **[junior]** Here is my response.'
+> **[Or]** Starting thought.'
 
 THREAD_NO_AUTHORS='> [!note]- Empty thread
 > No author markers here.'
 
 # Thread with arrow chain authorship convention
 THREAD_ARROW_CHAIN='> [!note]- Rewritten thread (Mar 15)
-> **[Or → x1f9]** This message was clarified by x1f9.
+> **[junior]** Looks good to me.
 >
 > ---
 >
-> **[junior]** Looks good to me.'
+> **[Or → x1f9]** This message was clarified by x1f9.'
 
 # Thread with multi-hop arrow chain
 THREAD_MULTI_ARROW='> [!note]- Multi-edit thread
@@ -94,33 +95,33 @@ THREAD_MULTI_ARROW='> [!note]- Multi-edit thread
 
 # Thread where Or's message was rewritten by an agent (arrow notation)
 THREAD_OR_REWRITTEN_BY_AGENT='> [!note]- Or said something, agent rewrote
-> **[Or → Zeke]** This is Or speaking, Zeke just cleaned up the prose.
+> **[Zeke]** My actual response to Or.
 >
 > ---
 >
-> **[Zeke]** My actual response to Or.'
+> **[Or → Zeke]** This is Or speaking, Zeke just cleaned up the prose.'
 
-# Thread where agent's rewrite is the last message (should wait on agent)
-THREAD_OR_REWRITTEN_LAST='> [!note]- Or spoke last via rewrite
-> **[Zeke]** I said something first.
+# Thread where Or's rewritten message is the latest message (should wait on agent)
+THREAD_OR_REWRITTEN_LAST='> [!note]- Or spoke latest via rewrite
+> **[Or → Zeke]** Or replied, Zeke cleaned it up.
 >
 > ---
 >
-> **[Or → Zeke]** Or replied, Zeke cleaned it up.'
+> **[Zeke]** I said something first.'
 
 # Thread with multi-paragraph content (blank lines inside callout)
 THREAD_MULTI_PARAGRAPH='> [!note]- Long discussion (Mar 15)
+> **[junior]** My multi-paragraph reply.
+>
+> Continued thoughts here.
+>
+> ---
+>
 > **[Or]** First paragraph of thought.
 >
 > Second paragraph continues here.
 >
-> Third paragraph with more detail.
->
-> ---
->
-> **[junior]** My multi-paragraph reply.
->
-> Continued thoughts here.'
+> Third paragraph with more detail.'
 
 # Two adjacent threads separated by a blank line
 THREAD_ADJACENT_A='> [!note]- Thread A
