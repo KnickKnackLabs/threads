@@ -13,22 +13,28 @@ setup() {
   [ "$output" = "/tmp/absolute/HUMAN.md" ]
 }
 
-@test "_resolve-file: relative path resolves against CALLER_PWD" {
-  run env CALLER_PWD="/tmp/caller" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "notes/BULLETIN.md"
+@test "_resolve-file: relative path resolves against THREADS_CALLER_PWD" {
+  run env THREADS_CALLER_PWD="/tmp/caller" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "notes/BULLETIN.md"
   [ "$status" -eq 0 ]
   [ "$output" = "/tmp/caller/notes/BULLETIN.md" ]
 }
 
-@test "_resolve-file: no arg defaults to CALLER_PWD/HUMAN.md" {
-  run env CALLER_PWD="/tmp/caller" THREADS_FILE= bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file"
+@test "_resolve-file: no arg defaults to THREADS_CALLER_PWD/HUMAN.md" {
+  run env THREADS_CALLER_PWD="/tmp/caller" THREADS_FILE= bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file"
   [ "$status" -eq 0 ]
   [ "$output" = "/tmp/caller/HUMAN.md" ]
 }
 
 @test "_resolve-file: THREADS_FILE env is also CWD-relative" {
-  run env CALLER_PWD="/tmp/caller" THREADS_FILE="notes/B.md" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file"
+  run env THREADS_CALLER_PWD="/tmp/caller" THREADS_FILE="notes/B.md" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file"
   [ "$status" -eq 0 ]
   [ "$output" = "/tmp/caller/notes/B.md" ]
+}
+
+@test "_resolve-file: legacy CALLER_PWD fallback still works during migration" {
+  run env CALLER_PWD="/tmp/legacy" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "notes/BULLETIN.md"
+  [ "$status" -eq 0 ]
+  [ "$output" = "/tmp/legacy/notes/BULLETIN.md" ]
 }
 
 # --- parse_threads ---

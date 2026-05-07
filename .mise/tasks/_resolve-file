@@ -11,7 +11,7 @@
 set -euo pipefail
 
 FILE="${1:-${THREADS_FILE:-}}"
-CALLER_DIR="${CALLER_PWD:-$(pwd)}"
+CALLER_DIR="${THREADS_CALLER_PWD:-${CALLER_PWD:-$(pwd)}}"
 
 if [ -z "$FILE" ]; then
   FILE="$CALLER_DIR/HUMAN.md"
