@@ -8,7 +8,7 @@ Parse, format, and archive [Obsidian-style callout](https://help.obsidian.md/cal
 The async communication layer for humans and agents.
 
 ![lang: bash + python](https://img.shields.io/badge/lang-bash%20%2B%20python-4EAA25?style=flat&logo=gnubash&logoColor=white)
-[![tests: 54 passing](https://img.shields.io/badge/tests-54%20passing-brightgreen?style=flat)](test/)
+[![tests: 60 passing](https://img.shields.io/badge/tests-60%20passing-brightgreen?style=flat)](test/)
 ![commands: 5](https://img.shields.io/badge/commands-5-blue?style=flat)
 ![license: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat)
 
@@ -99,14 +99,17 @@ threads template          # list available templates
 
 A threads file is plain markdown — a flat sequence of [Obsidian callouts](https://help.obsidian.md/callouts), each representing a conversation thread:
 
-- `[!info]-` — pinned instructions (always at top, never reordered)
 - `[!warning]- 👈` — needs human attention
-- `[!note]-` — active thread
+- `[!todo]-` — ready for agent action, filing, or implementation
+- `[!question]-` — still being shaped; discussion or decision needed
+- `[!note]-` — regular active thread
+- `[!info]-` — pinned instructions, reference, or status only
+- `[!abstract]-` — parked thought / someday-maybe
 - `[!success]-` — resolved (ready to archive)
 
 Messages within a thread start with `**[Name]**`, separated by `> ---` dividers. Arrow notation tracks rewrites: `**[Or → ikma]**` means "Or's words, as rewritten by ikma."
 
-**Turn-taking drives automation.** The last sender determines who's waiting. If a human sent the last message, agents are waiting. If an agent replied, the human is waiting. `fmt` uses this to auto-promote threads to `[!warning]` when they need human attention, demote back to `[!note]` when the human has replied, and sort warnings to the top.
+**Turn-taking drives automation.** The last sender determines who's waiting. If a human sent the last message, agents are waiting. If an agent replied, the human is waiting. `fmt` uses this to auto-promote legacy active threads to `[!warning]` when they need human attention, demote them back to `[!note]` when the human has replied, and sort callouts by lifecycle state. Explicit lifecycle callouts like `[!todo]`, `[!question]`, and `[!abstract]` keep their type.
 
 The human name defaults to `Or` but is configurable via `THREADS_HUMAN`. When unset, turn-taking is disabled — useful for peer-to-peer files like bulletin boards where there's no human in the loop.
 
@@ -158,7 +161,7 @@ cd threads && mise trust && mise install
 mise run test
 ```
 
-**54 tests** across 6 suites. The parser is 244 lines of Python in `lib/human_threads.py`. Tasks are bash scripts that call into the parser for the heavy lifting. Templates use [farts](https://github.com/KnickKnackLabs/farts) for frontmatter.
+**60 tests** across 6 suites. The parser is 229 lines of Python in `lib/human_threads.py`. Tasks are bash scripts that call into the parser for the heavy lifting. Templates use [farts](https://github.com/KnickKnackLabs/farts) for frontmatter.
 
 <details>
 <summary><b>Project structure</b></summary>
@@ -176,7 +179,7 @@ threads/
 ├── templates/
 │   └── *.md               # 1 template(s) with frontmatter metadata
 └── test/
-    └── *.bats             # 54 tests
+    └── *.bats             # 60 tests
 ```
 
 </details>

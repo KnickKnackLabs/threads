@@ -153,16 +153,28 @@ const readme = (
 
       <List>
         <Item>
-          <Code>{"[!info]-"}</Code>
-          {" — pinned instructions (always at top, never reordered)"}
-        </Item>
-        <Item>
           <Code>{"[!warning]- 👈"}</Code>
           {" — needs human attention"}
         </Item>
         <Item>
+          <Code>{"[!todo]-"}</Code>
+          {" — ready for agent action, filing, or implementation"}
+        </Item>
+        <Item>
+          <Code>{"[!question]-"}</Code>
+          {" — still being shaped; discussion or decision needed"}
+        </Item>
+        <Item>
           <Code>{"[!note]-"}</Code>
-          {" — active thread"}
+          {" — regular active thread"}
+        </Item>
+        <Item>
+          <Code>{"[!info]-"}</Code>
+          {" — pinned instructions, reference, or status only"}
+        </Item>
+        <Item>
+          <Code>{"[!abstract]-"}</Code>
+          {" — parked thought / someday-maybe"}
         </Item>
         <Item>
           <Code>{"[!success]-"}</Code>
@@ -184,11 +196,17 @@ const readme = (
         <Bold>{"Turn-taking drives automation."}</Bold>
         {" The last sender determines who's waiting. If a human sent the last message, agents are waiting. If an agent replied, the human is waiting. "}
         <Code>fmt</Code>
-        {" uses this to auto-promote threads to "}
+        {" uses this to auto-promote legacy active threads to "}
         <Code>[!warning]</Code>
-        {" when they need human attention, demote back to "}
+        {" when they need human attention, demote them back to "}
         <Code>[!note]</Code>
-        {" when the human has replied, and sort warnings to the top."}
+        {" when the human has replied, and sort callouts by lifecycle state. Explicit lifecycle callouts like "}
+        <Code>[!todo]</Code>
+        {", "}
+        <Code>[!question]</Code>
+        {", and "}
+        <Code>[!abstract]</Code>
+        {" keep their type."}
       </Paragraph>
 
       <Paragraph>

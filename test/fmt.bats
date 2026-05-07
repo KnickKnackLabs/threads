@@ -194,6 +194,48 @@ no authors here
   [[ "$content" == *"[!info]"* ]]
 }
 
+@test "fmt: does not promote/demote lifecycle callouts" {
+  export THREADS_HUMAN=Or
+  write_threads "$THREAD_TODO" "$THREAD_QUESTION" "$THREAD_ABSTRACT"
+  run threads fmt --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  content=$(cat "$THREADS_PATH")
+  [[ "$content" == *"[!todo]"* ]]
+  [[ "$content" == *"[!question]"* ]]
+  [[ "$content" == *"[!abstract]"* ]]
+}
+
+@test "fmt: sorts lifecycle callouts" {
+  write_threads \
+    "$THREAD_SUCCESS" \
+    "$THREAD_ABSTRACT" \
+    "$THREAD_NOTE" \
+    "$THREAD_QUESTION" \
+    "$THREAD_TODO" \
+    "$THREAD_WARNING" \
+    "$THREAD_INFO"
+  run threads fmt --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"sorted"* ]]
+  content=$(cat "$THREADS_PATH")
+
+  local info_pos warning_pos todo_pos question_pos note_pos abstract_pos success_pos
+  info_pos=$(echo "$content" | grep -n "\[!info\]" | head -1 | cut -d: -f1)
+  warning_pos=$(echo "$content" | grep -n "\[!warning\]" | head -1 | cut -d: -f1)
+  todo_pos=$(echo "$content" | grep -n "\[!todo\]" | head -1 | cut -d: -f1)
+  question_pos=$(echo "$content" | grep -n "\[!question\]" | head -1 | cut -d: -f1)
+  note_pos=$(echo "$content" | grep -n "\[!note\]" | head -1 | cut -d: -f1)
+  abstract_pos=$(echo "$content" | grep -n "\[!abstract\]" | head -1 | cut -d: -f1)
+  success_pos=$(echo "$content" | grep -n "\[!success\]" | head -1 | cut -d: -f1)
+
+  [ "$info_pos" -lt "$warning_pos" ]
+  [ "$warning_pos" -lt "$todo_pos" ]
+  [ "$todo_pos" -lt "$question_pos" ]
+  [ "$question_pos" -lt "$note_pos" ]
+  [ "$note_pos" -lt "$abstract_pos" ]
+  [ "$abstract_pos" -lt "$success_pos" ]
+}
+
 # --- Combined operations ---
 
 @test "fmt: converts codeblock and sorts in one pass" {

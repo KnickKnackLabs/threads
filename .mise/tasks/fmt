@@ -80,7 +80,7 @@ if threads:
     new_threads = []
 
     for kind, lines in threads:
-        if kind in ("info", "success"):
+        if kind not in ("note", "warning"):
             new_threads.append((kind, lines))
             continue
 
@@ -116,9 +116,17 @@ if threads:
     if demoted > 0:
         changes.append(f"demoted {demoted} to note")
 
-    # --- Phase 3: Sort threads by type ---
-    sort_key = {"info": 0, "warning": 1, "note": 2, "success": 3}
-    sorted_threads = sorted(new_threads, key=lambda t: sort_key.get(t[0], 3))
+    # --- Phase 3: Sort threads by lifecycle type ---
+    sort_key = {
+        "info": 0,
+        "warning": 1,
+        "todo": 2,
+        "question": 3,
+        "note": 4,
+        "abstract": 5,
+        "success": 6,
+    }
+    sorted_threads = sorted(new_threads, key=lambda t: sort_key.get(t[0], 6))
 
     if sorted_threads != new_threads:
         changes.append("sorted")

@@ -34,13 +34,23 @@ setup() {
 }
 
 @test "ls: shows word-based status labels" {
-  write_threads "$THREAD_INFO" "$THREAD_WARNING" "$THREAD_NOTE" "$THREAD_SUCCESS"
+  write_threads \
+    "$THREAD_INFO" \
+    "$THREAD_WARNING" \
+    "$THREAD_TODO" \
+    "$THREAD_QUESTION" \
+    "$THREAD_NOTE" \
+    "$THREAD_ABSTRACT" \
+    "$THREAD_SUCCESS"
 
   run threads ls --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
   [[ "$output" == *"info"* ]]
   [[ "$output" == *"attention"* ]]
+  [[ "$output" == *"todo"* ]]
+  [[ "$output" == *"shaping"* ]]
   [[ "$output" == *"active"* ]]
+  [[ "$output" == *"parked"* ]]
   [[ "$output" == *"resolved"* ]]
 }
 

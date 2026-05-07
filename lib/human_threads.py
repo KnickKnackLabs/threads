@@ -1,13 +1,13 @@
 """Shared parser for HUMAN.md thread management.
 
-Parses Obsidian-style callout threads ([!info], [!note], [!warning], [!success])
-from HUMAN.md files.
+Parses Obsidian-style callout threads from HUMAN.md files.
 """
 
 import os
 import re
 
-CALLOUT_OPENER = re.compile(r"^> \[!(info|note|warning|success)\][+-]?\s*")
+THREAD_KINDS = ("info", "note", "warning", "todo", "question", "abstract", "success")
+CALLOUT_OPENER = re.compile(r"^> \[!(" + "|".join(THREAD_KINDS) + r")\][+-]?\s*")
 # Matches [Name] or **[Name]** or **[Name1 → Name2]** etc.
 # Uses greedy match and includes digits for names like x1f9, k7r2.
 NAME_PAT = re.compile(r"^(?:\*\*)?\[([A-Za-z0-9][A-Za-z0-9 →\-]*)\](?:\*\*)?")
@@ -21,7 +21,7 @@ def parse_threads(body):
     handle threads separated by blank lines.
 
     Returns (preamble_lines, threads) where threads is a list of
-    (kind, lines) tuples. kind is 'note', 'warning', or 'success'.
+    (kind, lines) tuples. kind is one of THREAD_KINDS.
     """
     lines = body.split("\n")
     preamble_lines = []
