@@ -6,9 +6,13 @@ description: Default async scratchpad for human-agent conversations
 > [!info]- How this works
 > Async scratchpad for human-agent conversations.
 >
-> **Thread types:**
+> **Thread lifecycle:**
 > - `[!warning]- 👈` — needs human's attention
-> - `[!note]-` — regular thread
+> - `[!todo]-` — ready for agent action, filing, or implementation
+> - `[!question]-` — still being shaped; discussion or decision needed
+> - `[!note]-` — regular active thread
+> - `[!info]-` — pinned instructions, reference, or status only
+> - `[!abstract]-` — parked thought / someday-maybe
 > - `[!success]-` — resolved
 >
 > **Messages:** Start with `**[Name]**`, separated by `> ---` dividers.

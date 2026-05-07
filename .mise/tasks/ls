@@ -45,7 +45,15 @@ else:
                 suffix += "*"
             annotated.append(name + suffix)
 
-        status_map = {"info": "info", "warning": "attention", "note": "active", "success": "resolved"}
+        status_map = {
+            "info": "info",
+            "warning": "attention",
+            "todo": "todo",
+            "question": "shaping",
+            "note": "active",
+            "abstract": "parked",
+            "success": "resolved",
+        }
         status = status_map.get(kind, kind)
 
         print("\t".join([

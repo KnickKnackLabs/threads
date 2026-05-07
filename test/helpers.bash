@@ -65,6 +65,15 @@ THREAD_SUCCESS='> [!success]- Done thing (resolved Mar 15)
 THREAD_INFO='> [!info]- How this works
 > Instructions for using this file.'
 
+THREAD_TODO='> [!todo]- Ready to file
+> **[Or]** Please turn this into an issue.'
+
+THREAD_QUESTION='> [!question]- Still shaping
+> **[Or]** I am not sure what this should become.'
+
+THREAD_ABSTRACT='> [!abstract]- Parked thought
+> **[Or]** Someday maybe.'
+
 THREAD_AGENT_WAITING='> [!note]- Agent should respond
 > **[Or]** What do you think?'
 

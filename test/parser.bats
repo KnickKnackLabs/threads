@@ -93,6 +93,27 @@ assert [t[0] for t in threads] == ['note', 'warning', 'success']
   [ "$status" -eq 0 ]
 }
 
+@test "parser: extracts lifecycle callout threads" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+from human_threads import parse_threads, thread_title
+body = '''
+> [!todo]- Ready to file
+> Content A
+
+> [!question]- Still shaping
+> Content B
+
+> [!abstract]- Parked thought
+> Content C
+'''
+_, threads = parse_threads(body)
+assert [t[0] for t in threads] == ['todo', 'question', 'abstract']
+assert [thread_title(t[1][0]) for t in threads] == ['Ready to file', 'Still shaping', 'Parked thought']
+"
+  [ "$status" -eq 0 ]
+}
+
 @test "parser: preserves multi-paragraph content" {
   run python3 -c "
 import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
