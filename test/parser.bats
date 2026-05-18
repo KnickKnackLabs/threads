@@ -8,31 +8,31 @@ setup() {
 # --- _resolve-file ---
 
 @test "_resolve-file: absolute path passes through" {
-  run bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "/tmp/absolute/HUMAN.md"
+  run bash "$REPO_DIR/.mise/tasks/_resolve-file" "/tmp/absolute/HUMAN.md"
   [ "$status" -eq 0 ]
   [ "$output" = "/tmp/absolute/HUMAN.md" ]
 }
 
 @test "_resolve-file: relative path resolves against THREADS_CALLER_PWD" {
-  run env THREADS_CALLER_PWD="/tmp/caller" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "notes/BULLETIN.md"
+  run env THREADS_CALLER_PWD="/tmp/caller" bash "$REPO_DIR/.mise/tasks/_resolve-file" "notes/BULLETIN.md"
   [ "$status" -eq 0 ]
   [ "$output" = "/tmp/caller/notes/BULLETIN.md" ]
 }
 
 @test "_resolve-file: no arg defaults to THREADS_CALLER_PWD/HUMAN.md" {
-  run env THREADS_CALLER_PWD="/tmp/caller" THREADS_FILE= bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file"
+  run env THREADS_CALLER_PWD="/tmp/caller" THREADS_FILE= bash "$REPO_DIR/.mise/tasks/_resolve-file"
   [ "$status" -eq 0 ]
   [ "$output" = "/tmp/caller/HUMAN.md" ]
 }
 
 @test "_resolve-file: THREADS_FILE env is also CWD-relative" {
-  run env THREADS_CALLER_PWD="/tmp/caller" THREADS_FILE="notes/B.md" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file"
+  run env THREADS_CALLER_PWD="/tmp/caller" THREADS_FILE="notes/B.md" bash "$REPO_DIR/.mise/tasks/_resolve-file"
   [ "$status" -eq 0 ]
   [ "$output" = "/tmp/caller/notes/B.md" ]
 }
 
 @test "_resolve-file: legacy CALLER_PWD fallback still works during migration" {
-  run env CALLER_PWD="/tmp/legacy" bash "$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "notes/BULLETIN.md"
+  run env CALLER_PWD="/tmp/legacy" bash "$REPO_DIR/.mise/tasks/_resolve-file" "notes/BULLETIN.md"
   [ "$status" -eq 0 ]
   [ "$output" = "/tmp/legacy/notes/BULLETIN.md" ]
 }
@@ -41,7 +41,7 @@ setup() {
 
 @test "parser: extracts note thread" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import parse_threads
 _, threads = parse_threads('\n> [!note]- Title\n> Content\n')
 assert len(threads) == 1
@@ -52,7 +52,7 @@ assert threads[0][0] == 'note'
 
 @test "parser: extracts warning thread" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import parse_threads
 _, threads = parse_threads('\n> [!warning]- Title 👈\n> Content\n')
 assert len(threads) == 1
@@ -63,7 +63,7 @@ assert threads[0][0] == 'warning'
 
 @test "parser: extracts success thread" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import parse_threads
 _, threads = parse_threads('\n> [!success]- Title\n> Content\n')
 assert len(threads) == 1
@@ -74,7 +74,7 @@ assert threads[0][0] == 'success'
 
 @test "parser: handles multiple threads" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import parse_threads
 body = '''
 > [!note]- First
@@ -95,7 +95,7 @@ assert [t[0] for t in threads] == ['note', 'warning', 'success']
 
 @test "parser: preserves multi-paragraph content" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import parse_threads
 body = '''
 > [!note]- Multi
@@ -120,7 +120,7 @@ assert any('Para two' in l for l in lines)
 
 @test "parser: extracts authors from body" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import extract_authors
 lines = ['**[Or]** Hello.', '', '---', '', '**[junior]** Reply.']
 authors = extract_authors(lines)
@@ -131,7 +131,7 @@ assert authors == ['Or', 'junior'], f'got: {authors}'
 
 @test "parser: arrow chain yields last name as author" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import extract_authors
 lines = ['**[Or → Zeke]** Rewritten message.']
 authors = extract_authors(lines)
@@ -142,7 +142,7 @@ assert authors == ['Zeke'], f'got: {authors}'
 
 @test "parser: message senders yields first name in chain" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import extract_message_senders
 lines = ['**[Or → Zeke]** Rewritten message.']
 senders = extract_message_senders(lines)
@@ -155,7 +155,7 @@ assert senders == ['Or'], f'got: {senders}'
 
 @test "parser: human last sender means waiting on agent" {
   run python3 -c "
-import sys, os; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys, os; sys.path.insert(0, '$REPO_DIR/lib')
 os.environ['THREADS_HUMAN'] = 'Or'
 from human_threads import thread_waiting_on
 assert thread_waiting_on('note', ['Or']) == 'agent'
@@ -165,7 +165,7 @@ assert thread_waiting_on('note', ['Or']) == 'agent'
 
 @test "parser: agent last sender means waiting on human" {
   run python3 -c "
-import sys, os; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys, os; sys.path.insert(0, '$REPO_DIR/lib')
 os.environ['THREADS_HUMAN'] = 'Or'
 from human_threads import thread_waiting_on
 assert thread_waiting_on('note', ['Or', 'junior']) == 'Or'
@@ -175,7 +175,7 @@ assert thread_waiting_on('note', ['Or', 'junior']) == 'Or'
 
 @test "parser: success thread is resolved" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import thread_waiting_on
 assert thread_waiting_on('success', ['Or']) == 'resolved'
 "
@@ -184,7 +184,7 @@ assert thread_waiting_on('success', ['Or']) == 'resolved'
 
 @test "parser: no authors returns dash" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import thread_waiting_on
 assert thread_waiting_on('note', []) == '—'
 "
@@ -193,7 +193,7 @@ assert thread_waiting_on('note', []) == '—'
 
 @test "parser: no human configured returns dash for all active threads" {
   run python3 -c "
-import sys, os; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys, os; sys.path.insert(0, '$REPO_DIR/lib')
 os.environ.pop('THREADS_HUMAN', None)
 from human_threads import thread_waiting_on
 assert thread_waiting_on('note', ['Or', 'junior']) == '—'
@@ -205,7 +205,7 @@ assert thread_waiting_on('success', ['Or']) == 'resolved'
 
 @test "parser: explicit human_name argument overrides env" {
   run python3 -c "
-import sys, os; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys, os; sys.path.insert(0, '$REPO_DIR/lib')
 os.environ['THREADS_HUMAN'] = 'Or'
 from human_threads import thread_waiting_on
 assert thread_waiting_on('note', ['Alice'], human_name='Alice') == 'agent'
@@ -218,7 +218,7 @@ assert thread_waiting_on('note', ['junior'], human_name='Alice') == 'Alice'
 
 @test "parser: extracts title from opener" {
   run python3 -c "
-import sys; sys.path.insert(0, '$MISE_CONFIG_ROOT/lib')
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
 from human_threads import thread_title
 assert thread_title('> [!warning]- Urgent thing 👈') == 'Urgent thing'
 assert thread_title('> [!note]- Simple title') == 'Simple title'

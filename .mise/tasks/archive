@@ -1,59 +1,66 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 #MISE description="Move resolved threads to archive file"
-#USAGE flag "--file <file>" help="Path to threads file"
-set -euo pipefail
+#USAGE flag "--file <file>" default="" help="Path to threads file"
 
-THREADS_PATH=$("$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "${usage_file:-}")
-
-if [ ! -f "$THREADS_PATH" ]; then
-  echo "No threads file found at $THREADS_PATH — see available templates: threads template" >&2
-  exit 1
-fi
-
-# Archive lives next to the threads file
-ARCHIVE_PATH="${THREADS_PATH%.md}.archive.md"
-
-HUMAN_PATH="$THREADS_PATH" ARCHIVE_PATH="$ARCHIVE_PATH" PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
 import os
+import sys
 from datetime import date
-from human_threads import parse_threads
 
-human_path = os.environ["HUMAN_PATH"]
-archive_path = os.environ["ARCHIVE_PATH"]
+sys.path.insert(0, os.environ["MISE_CONFIG_ROOT"] + "/lib")
+from human_threads import parse_threads, resolve_threads_path  # noqa: E402
 
-content = open(human_path).read()
+human_path = resolve_threads_path(os.environ.get("usage_file", ""))
+
+if not os.path.isfile(human_path):
+    print(
+        f"No threads file found at {human_path} — see available templates: threads template",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+# Archive lives next to the threads file. Preserve the historical shell
+# behavior: strip a trailing .md when present, then append .archive.md.
+archive_path = (
+    human_path[:-3] + ".archive.md"
+    if human_path.endswith(".md")
+    else human_path + ".archive.md"
+)
+
+with open(human_path, encoding="utf-8") as f:
+    content = f.read()
 preamble_lines, threads = parse_threads(content)
 
-kept = [(k, l) for k, l in threads if k != "success"]
-resolved = [(k, l) for k, l in threads if k == "success"]
+kept = [(kind, lines) for kind, lines in threads if kind != "success"]
+resolved = [(kind, lines) for kind, lines in threads if kind == "success"]
 
 if not resolved:
     print("No resolved threads to archive.")
-    raise SystemExit(0)
+    sys.exit(0)
 
-# Append to archive file
+# Append to archive file.
 archive_existed = os.path.exists(archive_path)
-with open(archive_path, "a") as f:
+with open(archive_path, "a", encoding="utf-8") as f:
     if not archive_existed:
-        f.write("""\
+        f.write(
+            """\
 # Archive
 
 Resolved conversation threads.
 
-""")
+"""
+        )
     f.write(f"## Archived {date.today().isoformat()}\n\n")
-    for _kind, tlines in resolved:
-        f.write("\n".join(tlines) + "\n\n")
+    for _kind, thread_lines in resolved:
+        f.write("\n".join(thread_lines) + "\n\n")
 
-# Rewrite threads file without resolved threads
+# Rewrite threads file without resolved threads.
 preamble = "\n".join(preamble_lines).rstrip("\n")
 new_body = preamble + "\n"
-for _kind, tlines in kept:
-    new_body += "\n" + "\n".join(tlines) + "\n"
+for _kind, thread_lines in kept:
+    new_body += "\n" + "\n".join(thread_lines) + "\n"
 
-with open(human_path, "w") as f:
+with open(human_path, "w", encoding="utf-8") as f:
     f.write(new_body)
 
-s = "s" if len(resolved) != 1 else ""
-print(f"Archived {len(resolved)} resolved thread{s} to {os.path.basename(archive_path)}.")
-PYEOF
+suffix = "s" if len(resolved) != 1 else ""
+print(f"Archived {len(resolved)} resolved thread{suffix} to {os.path.basename(archive_path)}.")

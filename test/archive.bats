@@ -33,6 +33,19 @@ setup() {
   grep -q "Archived" "$ARCHIVE_PATH"
 }
 
+@test "archive: non-md files append .archive.md" {
+  THREADS_PATH="$TEST_DIR/THREADS.txt"
+  ARCHIVE_PATH="$TEST_DIR/THREADS.txt.archive.md"
+  export THREADS_PATH ARCHIVE_PATH
+  write_threads "$THREAD_SUCCESS"
+
+  run threads archive --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"THREADS.txt.archive.md"* ]]
+  [ -f "$ARCHIVE_PATH" ]
+  grep -q "Done thing" "$ARCHIVE_PATH"
+}
+
 @test "archive: appends to existing archive" {
   write_threads "$THREAD_SUCCESS"
   threads archive --file "$THREADS_PATH"

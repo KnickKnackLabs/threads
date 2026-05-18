@@ -56,7 +56,7 @@ const readme = (
       </Paragraph>
 
       <Badges>
-        <Badge label="lang" value="bash + python" color="4EAA25" logo="gnubash" logoColor="white" />
+        <Badge label="lang" value="python + bash" color="3776AB" logo="python" logoColor="white" />
         <Badge label="tests" value={`${testCount} passing`} color="brightgreen" href="test/" />
         <Badge label="commands" value={`${taskCount}`} color="blue" />
         <Badge label="license" value="MIT" color="blue" />
@@ -259,7 +259,7 @@ const readme = (
         <Bold>{`${testCount} tests`}</Bold>
         {` across ${testFiles.length} suites. The parser is ${parserLines} lines of Python in `}
         <Code>lib/human_threads.py</Code>
-        {". Tasks are bash scripts that call into the parser for the heavy lifting. Templates use "}
+        {". Core commands are Python mise file tasks that call into the shared parser; shell remains for small wrappers and tests. Templates use "}
         <Link href="https://github.com/KnickKnackLabs/farts">farts</Link>
         {" for frontmatter."}
       </Paragraph>

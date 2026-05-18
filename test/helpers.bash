@@ -3,14 +3,16 @@
 # Provides test isolation via temporary directories and a threads()
 # wrapper that calls tasks through mise.
 
-if [ -z "${MISE_CONFIG_ROOT:-}" ]; then
-  echo "MISE_CONFIG_ROOT not set — run tests via: mise run test" >&2
-  exit 1
+if [ -z "${REPO_DIR:-}" ]; then
+  REPO_DIR="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
+  export REPO_DIR
+  eval "$(cd "$REPO_DIR" && mise env)"
 fi
 
 # Call threads tasks through mise — the only layer between tests and mise.
 threads() {
-  (cd "$MISE_CONFIG_ROOT" && mise run -q "$@")
+  local caller_pwd="${THREADS_CALLER_PWD:-$PWD}"
+  (cd "$REPO_DIR" && THREADS_CALLER_PWD="$caller_pwd" mise run -q "$@")
 }
 export -f threads
 

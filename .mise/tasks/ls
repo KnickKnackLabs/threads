@@ -1,31 +1,53 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 #MISE description="List threads with status and who's waiting"
-#USAGE flag "--file <file>" help="Path to threads file"
-set -euo pipefail
+#USAGE flag "--file <file>" default="" help="Path to threads file"
 
-THREADS_PATH=$("$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "${usage_file:-}")
-
-if [ ! -f "$THREADS_PATH" ]; then
-  echo "No threads file found at $THREADS_PATH — see available templates: threads template" >&2
-  exit 1
-fi
-
-output=$(HUMAN_PATH="$THREADS_PATH" PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
 import os
-from human_threads import (
-    parse_threads, extract_thread_body,
-    extract_authors, extract_message_senders, extract_all_participants,
-    extract_thread_starter, thread_title, thread_waiting_on,
+import subprocess
+import sys
+
+sys.path.insert(0, os.environ["MISE_CONFIG_ROOT"] + "/lib")
+from human_threads import (  # noqa: E402
+    extract_all_participants,
+    extract_authors,
+    extract_message_senders,
+    extract_thread_body,
+    extract_thread_starter,
+    parse_threads,
+    resolve_threads_path,
+    thread_title,
+    thread_waiting_on,
 )
 
-content = open(os.environ["HUMAN_PATH"]).read()
+filepath = resolve_threads_path(os.environ.get("usage_file", ""))
+
+if not os.path.isfile(filepath):
+    print(
+        f"No threads file found at {filepath} — see available templates: threads template",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+with open(filepath, encoding="utf-8") as f:
+    content = f.read()
 _, threads = parse_threads(content)
 
+
+def run_gum(*args, input_text=None):
+    try:
+        subprocess.run(["gum", *args], input=input_text, text=True, check=True)
+    except FileNotFoundError:
+        print("gum: command not found", file=sys.stderr)
+        sys.exit(127)
+    except subprocess.CalledProcessError as exc:
+        sys.exit(exc.returncode)
+
+
 if not threads:
-    print("NO_THREADS")
+    run_gum("style", "--faint", "No threads found")
 else:
     # Participants column encodes roles: + = started thread, * = last sender
-    print("\t".join(["Status", "Thread", "Participants", "Waiting on"]))
+    rows = [["Status", "Thread", "Participants", "Waiting on"]]
     for kind, lines in threads:
         title = thread_title(lines[0])
         body_lines = extract_thread_body(lines)
@@ -45,22 +67,35 @@ else:
                 suffix += "*"
             annotated.append(name + suffix)
 
-        status_map = {"info": "info", "warning": "attention", "note": "active", "success": "resolved"}
+        status_map = {
+            "info": "info",
+            "warning": "attention",
+            "note": "active",
+            "success": "resolved",
+        }
         status = status_map.get(kind, kind)
 
-        print("\t".join([
-            status,
-            title,
-            ", ".join(annotated) if annotated else "\u2014",
-            waiting,
-        ]))
-PYEOF
-)
+        rows.append(
+            [
+                status,
+                title,
+                ", ".join(annotated) if annotated else "—",
+                waiting,
+            ]
+        )
 
-if [ "$output" = "NO_THREADS" ]; then
-  gum style --faint "No threads found"
-else
-  echo "$output" | gum table --print --separator "	" --border rounded \
-    --border.foreground 240 --header.foreground 81
-  gum style --faint "  + started thread  * last sender"
-fi
+    table_input = "\n".join("\t".join(row) for row in rows) + "\n"
+    run_gum(
+        "table",
+        "--print",
+        "--separator",
+        "\t",
+        "--border",
+        "rounded",
+        "--border.foreground",
+        "240",
+        "--header.foreground",
+        "81",
+        input_text=table_input,
+    )
+    run_gum("style", "--faint", "  + started thread  * last sender")
