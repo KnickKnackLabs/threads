@@ -33,6 +33,16 @@ setup() {
   [[ "$output" == *"junior"* ]]
 }
 
+@test "ls: marks starter and latest sender in newest-first threads" {
+  write_threads "$THREAD_NOTE"
+
+  run threads ls --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Or+"* ]]
+  [[ "$output" == *"junior*"* ]]
+  [[ "$output" == *"latest sender"* ]]
+}
+
 @test "ls: shows word-based status labels" {
   write_threads "$THREAD_INFO" "$THREAD_WARNING" "$THREAD_NOTE" "$THREAD_SUCCESS"
 

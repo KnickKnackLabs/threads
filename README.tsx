@@ -76,8 +76,7 @@ const readme = (
       "# A human writes raw thoughts anywhere in the file:",
       "",
       "  [Or] We should add retry logic to the webhook handler.",
-      "  [ikma] Agree — exponential backoff with jitter?",
-      "  [Or] Yeah. Can you draft it?",
+      "  [ikma] Agree — exponential backoff with jitter. I can draft it.",
       "",
       "$ threads fmt",
       "Formatted: converted 1 codeblock, promoted 1 to warning, sorted.",
@@ -89,15 +88,11 @@ const readme = (
       "> ...",
       "",
       "> [!warning]- TODO: title this thread 👈",
+      "> **[ikma]** Agree — exponential backoff with jitter. I can draft it.",
+      ">",
+      "> ---",
+      ">",
       "> **[Or]** We should add retry logic to the webhook handler.",
-      ">",
-      "> ---",
-      ">",
-      "> **[ikma]** Agree — exponential backoff with jitter?",
-      ">",
-      "> ---",
-      ">",
-      "> **[Or]** Yeah. Can you draft it?",
     ].join("\n")}</CodeBlock>
 
     <LineBreak />
@@ -173,22 +168,27 @@ const readme = (
       <Paragraph>
         {"Messages within a thread start with "}
         <Code>{"**[Name]**"}</Code>
-        {", separated by "}
+        {", newest-first, separated by "}
         <Code>{"> ---"}</Code>
-        {" dividers. Arrow notation tracks rewrites: "}
+        {" dividers. Add new replies at the top of the thread. Arrow notation tracks rewrites: "}
         <Code>{"**[Or → ikma]**"}</Code>
         {" means \"Or's words, as rewritten by ikma.\""}
       </Paragraph>
 
       <Paragraph>
         <Bold>{"Turn-taking drives automation."}</Bold>
-        {" The last sender determines who's waiting. If a human sent the last message, agents are waiting. If an agent replied, the human is waiting. "}
+        {" The latest sender determines who's waiting. If a human sent the latest message, agents are waiting. If an agent replied, the human is waiting. "}
         <Code>fmt</Code>
         {" uses this to auto-promote threads to "}
         <Code>[!warning]</Code>
         {" when they need human attention, demote back to "}
         <Code>[!note]</Code>
         {" when the human has replied, and sort warnings to the top."}
+      </Paragraph>
+
+      <Paragraph>
+        <Code>fmt</Code>
+        {" treats existing message order as authoritative; it does not reshuffle messages inside established threads. Raw codeblock transcripts are converted into newest-first callouts."}
       </Paragraph>
 
       <Paragraph>
@@ -208,10 +208,10 @@ const readme = (
         "├───────────┼──────────────────────────────────────┼───────────────────┼────────────┤",
         "│ info      │ How this works                       │ —                 │ —          │",
         "│ attention │ Retry logic for webhook handler      │ Or+, ikma*        │ Or         │",
-        "│ active    │ Refactor auth module                 │ ikma+*, Or        │ agent      │",
+        "│ active    │ Refactor auth module                 │ ikma+, Or*        │ agent      │",
         "│ resolved  │ Fix CI timeout                       │ Or+, baby-joel*   │ resolved   │",
         "╰───────────┴──────────────────────────────────────┴───────────────────┴────────────╯",
-        "  + started thread  * last sender",
+        "  + started thread  * latest sender",
         "",
         "$ threads fmt",
         "Formatted: promoted 1 to warning, sorted.",

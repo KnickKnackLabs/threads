@@ -11,7 +11,7 @@ description: Default async scratchpad for human-agent conversations
 > - `[!note]-` — regular thread
 > - `[!success]-` — resolved
 >
-> **Messages:** Start with `**[Name]**`, separated by `> ---` dividers.
+> **Messages:** Start with `**[Name]**`, newest-first, separated by `> ---` dividers. Add new replies at the top.
 >
 > **Arrow notation:** `**[Or → agent]**` means Or's words, rewritten by agent.
 >

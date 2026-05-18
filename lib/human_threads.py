@@ -146,13 +146,14 @@ def parse_author_chain(raw):
 
 
 def extract_authors(body_lines):
-    """Extract author names from body lines, in order of appearance.
+    """Extract author names from body lines, in file order.
 
-    Supports arrow chain convention: **[Or → Zeke]** yields both names.
-    The returned list is flattened — each message contributes its chain's
-    last name as the "effective author" for editor attribution (the '*'
-    last-editor annotation in `list` output). For turn-taking / waiting-on
-    logic, use `extract_message_senders()` instead.
+    Threads use newest-first message order, so the first returned author is
+    from the latest message. Supports arrow chain convention: **[Or → Zeke]**
+    yields both names. The returned list is flattened — each message
+    contributes its chain's last name as the "effective author" for editor
+    attribution. For turn-taking / waiting-on logic, use
+    `extract_message_senders()` instead.
     """
     authors = []
     for line in body_lines:
@@ -167,11 +168,12 @@ def extract_authors(body_lines):
 
 
 def extract_message_senders(body_lines):
-    """Extract the original sender of each message, in order.
+    """Extract the original sender of each message, in file order.
 
-    For arrow chains like **[Or → Zeke]**, returns 'Or' (the original
-    author), not 'Zeke' (the editor). Use this for turn-taking logic
-    (thread_waiting_on) where we care about who *sent* the message,
+    Threads use newest-first message order, so the first returned sender is
+    the latest sender. For arrow chains like **[Or → Zeke]**, returns 'Or'
+    (the original author), not 'Zeke' (the editor). Use this for turn-taking
+    logic (thread_waiting_on) where we care about who *sent* the message,
     not who cleaned up its prose.
 
     Contrast with extract_authors which returns the last name in each
@@ -203,16 +205,20 @@ def extract_all_participants(body_lines):
 
 
 def extract_thread_starter(body_lines):
-    """Return the original author of the first message in a thread.
+    """Return the original author of the oldest message in a thread.
 
-    For a chain like [Or → x1f9], returns 'Or' (the original author).
+    Threads use newest-first message order, so the starter is the last
+    sender found in file order. For a chain like [Or → x1f9], returns 'Or'
+    (the original author).
     """
+    starter = None
     for line in body_lines:
         m = NAME_PAT.match(line)
         if m:
             chain = parse_author_chain(m.group(1))
-            return chain[0] if chain else None
-    return None
+            if chain:
+                starter = chain[0]
+    return starter
 
 
 def thread_title(opener_line):
@@ -237,19 +243,20 @@ def _resolve_human_name(human_name=None):
     return os.environ.get("THREADS_HUMAN")
 
 
-def thread_waiting_on(kind, authors, human_name=None):
+def thread_waiting_on(kind, senders, human_name=None):
     """Determine who the thread is waiting on.
 
-    Returns 'resolved', 'agent', the human name, or '\u2014'.
+    Returns 'resolved', 'agent', the human name, or '\u2014'. Threads use
+    newest-first message order, so the first sender is the latest sender.
     The human name is resolved from the explicit argument or the
-    THREADS_HUMAN env var. If neither is set, turn-taking is
-    disabled and all active threads return '\u2014'.
+    THREADS_HUMAN env var. If neither is set, turn-taking is disabled and
+    all active threads return '\u2014'.
     """
     human = _resolve_human_name(human_name)
     if kind == "success":
         return "resolved"
-    if not authors or human is None:
+    if not senders or human is None:
         return "\u2014"
-    if authors[-1] == human:
+    if senders[0] == human:
         return "agent"
     return human

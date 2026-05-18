@@ -151,9 +151,20 @@ assert senders == ['Or'], f'got: {senders}'
   [ "$status" -eq 0 ]
 }
 
+@test "parser: thread starter is oldest sender in newest-first order" {
+  run python3 -c "
+import sys; sys.path.insert(0, '$REPO_DIR/lib')
+from human_threads import extract_thread_starter
+lines = ['**[junior]** Latest reply.', '', '---', '', '**[Or → Zeke]** Original request.']
+starter = extract_thread_starter(lines)
+assert starter == 'Or', f'got: {starter}'
+"
+  [ "$status" -eq 0 ]
+}
+
 # --- thread_waiting_on ---
 
-@test "parser: human last sender means waiting on agent" {
+@test "parser: human latest sender means waiting on agent" {
   run python3 -c "
 import sys, os; sys.path.insert(0, '$REPO_DIR/lib')
 os.environ['THREADS_HUMAN'] = 'Or'
@@ -163,12 +174,12 @@ assert thread_waiting_on('note', ['Or']) == 'agent'
   [ "$status" -eq 0 ]
 }
 
-@test "parser: agent last sender means waiting on human" {
+@test "parser: agent latest sender means waiting on human" {
   run python3 -c "
 import sys, os; sys.path.insert(0, '$REPO_DIR/lib')
 os.environ['THREADS_HUMAN'] = 'Or'
 from human_threads import thread_waiting_on
-assert thread_waiting_on('note', ['Or', 'junior']) == 'Or'
+assert thread_waiting_on('note', ['junior', 'Or']) == 'Or'
 "
   [ "$status" -eq 0 ]
 }
@@ -196,7 +207,7 @@ assert thread_waiting_on('note', []) == '—'
 import sys, os; sys.path.insert(0, '$REPO_DIR/lib')
 os.environ.pop('THREADS_HUMAN', None)
 from human_threads import thread_waiting_on
-assert thread_waiting_on('note', ['Or', 'junior']) == '—'
+assert thread_waiting_on('note', ['junior', 'Or']) == '—'
 assert thread_waiting_on('warning', ['junior']) == '—'
 assert thread_waiting_on('success', ['Or']) == 'resolved'
 "

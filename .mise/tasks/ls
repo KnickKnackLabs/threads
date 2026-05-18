@@ -9,7 +9,6 @@ import sys
 sys.path.insert(0, os.environ["MISE_CONFIG_ROOT"] + "/lib")
 from human_threads import (  # noqa: E402
     extract_all_participants,
-    extract_authors,
     extract_message_senders,
     extract_thread_body,
     extract_thread_starter,
@@ -46,16 +45,15 @@ def run_gum(*args, input_text=None):
 if not threads:
     run_gum("style", "--faint", "No threads found")
 else:
-    # Participants column encodes roles: + = started thread, * = last sender
+    # Participants column encodes roles: + = started thread, * = latest sender
     rows = [["Status", "Thread", "Participants", "Waiting on"]]
     for kind, lines in threads:
         title = thread_title(lines[0])
         body_lines = extract_thread_body(lines)
-        authors = extract_authors(body_lines)
         senders = extract_message_senders(body_lines)
         participants = extract_all_participants(body_lines)
         starter = extract_thread_starter(body_lines)
-        last_author = authors[-1] if authors else None
+        latest_sender = senders[0] if senders else None
         waiting = thread_waiting_on(kind, senders)
 
         annotated = []
@@ -63,7 +61,7 @@ else:
             suffix = ""
             if name == starter:
                 suffix += "+"
-            if name == last_author:
+            if name == latest_sender:
                 suffix += "*"
             annotated.append(name + suffix)
 
@@ -98,4 +96,4 @@ else:
         "81",
         input_text=table_input,
     )
-    run_gum("style", "--faint", "  + started thread  * last sender")
+    run_gum("style", "--faint", "  + started thread  * latest sender")
