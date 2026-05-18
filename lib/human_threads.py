@@ -7,6 +7,32 @@ from HUMAN.md files.
 import os
 import re
 
+
+def resolve_threads_path(file_arg=None):
+    """Resolve the target threads file path.
+
+    Resolution order:
+    1. Explicit file argument (from --file)
+    2. THREADS_FILE environment variable
+    3. HUMAN.md in the caller directory
+
+    Relative paths resolve against THREADS_CALLER_PWD. CALLER_PWD remains as
+    a legacy fallback while older shims/migration tests still exercise it.
+    """
+    file_arg = file_arg or os.environ.get("THREADS_FILE", "")
+    caller_dir = (
+        os.environ.get("THREADS_CALLER_PWD")
+        or os.environ.get("CALLER_PWD")
+        or os.getcwd()
+    )
+
+    if not file_arg:
+        return os.path.join(caller_dir, "HUMAN.md")
+    if not os.path.isabs(file_arg):
+        return os.path.join(caller_dir, file_arg)
+    return file_arg
+
+
 CALLOUT_OPENER = re.compile(r"^> \[!(info|note|warning|success)\][+-]?\s*")
 # Matches [Name] or **[Name]** or **[Name1 → Name2]** etc.
 # Uses greedy match and includes digits for names like x1f9, k7r2.

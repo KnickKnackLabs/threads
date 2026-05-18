@@ -1,29 +1,35 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 #MISE description="Format threads: convert codeblocks, promote/demote, sort"
-#USAGE flag "--file <file>" help="Path to threads file"
-#USAGE flag "--check" help="Check mode: report issues, exit non-zero if changes needed"
-set -euo pipefail
+#USAGE flag "--file <file>" default="" help="Path to threads file"
+#USAGE flag "--check" default=#false help="Check mode: report issues, exit non-zero if changes needed"
 
-THREADS_PATH=$("$MISE_CONFIG_ROOT/.mise/tasks/_resolve-file" "${usage_file:-}")
+import os
+import re
+import sys
 
-if [ ! -f "$THREADS_PATH" ]; then
-  echo "No threads file found at $THREADS_PATH — see available templates: threads template" >&2
-  exit 1
-fi
-
-CHECK_MODE="${usage_check:-false}"
-
-HUMAN_PATH="$THREADS_PATH" CHECK_MODE="$CHECK_MODE" PYTHONPATH="$MISE_CONFIG_ROOT/lib" python3 << 'PYEOF'
-import re, os, sys
-from human_threads import (
-    NAME_PAT, CALLOUT_OPENER,
+sys.path.insert(0, os.environ["MISE_CONFIG_ROOT"] + "/lib")
+from human_threads import (  # noqa: E402
+    CALLOUT_OPENER,
+    NAME_PAT,
+    extract_message_senders,
+    extract_thread_body,
     parse_threads,
-    extract_thread_body, extract_message_senders, thread_waiting_on,
+    resolve_threads_path,
+    thread_waiting_on,
 )
 
-filepath = os.environ["HUMAN_PATH"]
-check_mode = os.environ.get("CHECK_MODE", "false") == "true"
-original = open(filepath).read()
+filepath = resolve_threads_path(os.environ.get("usage_file", ""))
+
+if not os.path.isfile(filepath):
+    print(
+        f"No threads file found at {filepath} — see available templates: threads template",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+check_mode = os.environ.get("usage_check", "false") == "true"
+with open(filepath, encoding="utf-8") as f:
+    original = f.read()
 content = original
 changes = []
 
@@ -32,20 +38,22 @@ changes = []
 codeblock_pat = re.compile(r"^```\s*\n(.*?)^```\s*$", re.MULTILINE | re.DOTALL)
 
 converted = 0
-def replace_codeblock(m):
+
+
+def replace_codeblock(match):
     global converted
-    block_content = m.group(1).strip()
+    block_content = match.group(1).strip()
 
     lines = block_content.split("\n")
-    has_messages = any(NAME_PAT.match(l.strip()) for l in lines)
+    has_messages = any(NAME_PAT.match(line.strip()) for line in lines)
     if not has_messages:
-        return m.group(0)
+        return match.group(0)
 
     title = "TODO: title this thread"
     callout_lines = [f"> [!note]- {title}"]
     first_message = True
-    for l in lines:
-        stripped = l.strip()
+    for line in lines:
+        stripped = line.strip()
         if stripped == "":
             callout_lines.append(">")
         elif NAME_PAT.match(stripped):
@@ -53,28 +61,28 @@ def replace_codeblock(m):
                 callout_lines.append(">")
                 callout_lines.append("> ---")
                 callout_lines.append(">")
-            bolded = NAME_PAT.sub(lambda nm: f"**[{nm.group(1)}]**", stripped)
+            bolded = NAME_PAT.sub(lambda name: f"**[{name.group(1)}]**", stripped)
             callout_lines.append(f"> {bolded}")
             first_message = False
         else:
-            callout_lines.append(f"> {l}")
+            callout_lines.append(f"> {line}")
 
     converted += 1
     return "\n".join(callout_lines) + "\n"
+
 
 content = codeblock_pat.sub(replace_codeblock, content)
 content = re.sub(r"\n{4,}", "\n\n\n", content)
 
 if converted > 0:
-    s = "s" if converted != 1 else ""
-    changes.append(f"converted {converted} codeblock{s}")
+    suffix = "s" if converted != 1 else ""
+    changes.append(f"converted {converted} codeblock{suffix}")
 
 # --- Phase 2: Promote/demote thread callout types based on waiting-on ---
 
 preamble_lines, threads = parse_threads(content)
 
 if threads:
-
     promoted = 0
     demoted = 0
     new_threads = []
@@ -98,15 +106,15 @@ if threads:
 
         if new_kind != kind:
             opener = lines[0]
-            m = CALLOUT_OPENER.match(opener)
-            if m:
-                prefix = opener[:m.start(1)]
-                suffix = opener[m.end(1):]
+            opener_match = CALLOUT_OPENER.match(opener)
+            if opener_match:
+                prefix = opener[: opener_match.start(1)]
+                suffix = opener[opener_match.end(1) :]
                 new_opener = prefix + new_kind + suffix
-                if new_kind == "warning" and "\U0001f448" not in new_opener:
-                    new_opener = new_opener.rstrip() + " \U0001f448"
-                elif new_kind != "warning" and "\U0001f448" in new_opener:
-                    new_opener = re.sub(r"\s*\U0001f448\s*", " ", new_opener).rstrip()
+                if new_kind == "warning" and "👈" not in new_opener:
+                    new_opener = new_opener.rstrip() + " 👈"
+                elif new_kind != "warning" and "👈" in new_opener:
+                    new_opener = re.sub(r"\s*👈\s*", " ", new_opener).rstrip()
                 lines = [new_opener] + lines[1:]
 
         new_threads.append((new_kind, lines))
@@ -118,7 +126,7 @@ if threads:
 
     # --- Phase 3: Sort threads by type ---
     sort_key = {"info": 0, "warning": 1, "note": 2, "success": 3}
-    sorted_threads = sorted(new_threads, key=lambda t: sort_key.get(t[0], 3))
+    sorted_threads = sorted(new_threads, key=lambda thread: sort_key.get(thread[0], 3))
 
     if sorted_threads != new_threads:
         changes.append("sorted")
@@ -126,8 +134,8 @@ if threads:
     # Reassemble
     preamble = "\n".join(preamble_lines).rstrip("\n")
     new_body = preamble + "\n"
-    for _kind, tlines in sorted_threads:
-        new_body += "\n" + "\n".join(tlines) + "\n"
+    for _kind, thread_lines in sorted_threads:
+        new_body += "\n" + "\n".join(thread_lines) + "\n"
     content = new_body
 
 # --- Output ---
@@ -136,14 +144,12 @@ if check_mode:
     if changes:
         print(f"Would change: {', '.join(changes)}.")
         sys.exit(1)
-    else:
-        print("Clean.")
-        sys.exit(0)
+    print("Clean.")
+    sys.exit(0)
 
 if changes:
-    with open(filepath, "w") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"Formatted: {', '.join(changes)}.")
 else:
     print("Nothing to format.")
-PYEOF

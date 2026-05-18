@@ -7,8 +7,8 @@
 Parse, format, and archive [Obsidian-style callout](https://help.obsidian.md/callouts) threads.
 The async communication layer for humans and agents.
 
-![lang: bash + python](https://img.shields.io/badge/lang-bash%20%2B%20python-4EAA25?style=flat&logo=gnubash&logoColor=white)
-[![tests: 54 passing](https://img.shields.io/badge/tests-54%20passing-brightgreen?style=flat)](test/)
+![lang: python + bash](https://img.shields.io/badge/lang-python%20%2B%20bash-3776AB?style=flat&logo=python&logoColor=white)
+[![tests: 58 passing](https://img.shields.io/badge/tests-58%20passing-brightgreen?style=flat)](test/)
 ![commands: 5](https://img.shields.io/badge/commands-5-blue?style=flat)
 ![license: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat)
 
@@ -158,7 +158,7 @@ cd threads && mise trust && mise install
 mise run test
 ```
 
-**54 tests** across 6 suites. The parser is 244 lines of Python in `lib/human_threads.py`. Tasks are bash scripts that call into the parser for the heavy lifting. Templates use [farts](https://github.com/KnickKnackLabs/farts) for frontmatter.
+**58 tests** across 6 suites. The parser is 255 lines of Python in `lib/human_threads.py`. Core commands are Python mise file tasks that call into the shared parser; shell remains for small wrappers and tests. Templates use [farts](https://github.com/KnickKnackLabs/farts) for frontmatter.
 
 <details>
 <summary><b>Project structure</b></summary>
@@ -176,7 +176,7 @@ threads/
 ├── templates/
 │   └── *.md               # 1 template(s) with frontmatter metadata
 └── test/
-    └── *.bats             # 54 tests
+    └── *.bats             # 58 tests
 ```
 
 </details>
