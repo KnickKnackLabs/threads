@@ -68,7 +68,10 @@ else:
         status_map = {
             "info": "info",
             "warning": "attention",
+            "todo": "todo",
+            "question": "shaping",
             "note": "active",
+            "abstract": "parked",
             "success": "resolved",
         }
         status = status_map.get(kind, kind)

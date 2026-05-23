@@ -94,14 +94,17 @@ threads template          # list available templates
 
 A threads file is plain markdown — a flat sequence of [Obsidian callouts](https://help.obsidian.md/callouts), each representing a conversation thread:
 
-- `[!info]-` — pinned instructions (always at top, never reordered)
 - `[!warning]- 👈` — needs human attention
-- `[!note]-` — active thread
+- `[!todo]-` — ready for agent action, filing, or implementation
+- `[!question]-` — still being shaped; discussion or decision needed
+- `[!note]-` — regular active thread
+- `[!info]-` — pinned instructions, reference, or status only
+- `[!abstract]-` — parked thought / someday-maybe
 - `[!success]-` — resolved (ready to archive)
 
 Messages within a thread start with `**[Name]**`, newest-first, separated by `> ---` dividers. Add new replies at the top of the thread. Arrow notation tracks rewrites: `**[Or → ikma]**` means "Or's words, as rewritten by ikma."
 
-**Turn-taking drives automation.** The latest sender determines who's waiting. If a human sent the latest message, agents are waiting. If an agent replied, the human is waiting. `fmt` uses this to auto-promote threads to `[!warning]` when they need human attention, demote back to `[!note]` when the human has replied, and sort warnings to the top.
+**Turn-taking drives automation.** The latest sender determines who's waiting. If a human sent the latest message, agents are waiting. If an agent replied, the human is waiting. `fmt` uses this to auto-promote legacy active threads to `[!warning]` when they need human attention, demote them back to `[!note]` when the human has replied, and sort callouts by lifecycle state. Explicit lifecycle callouts like `[!todo]`, `[!question]`, and `[!abstract]` keep their type.
 
 `fmt` treats existing message order as authoritative; it does not reshuffle messages inside established threads. Raw codeblock transcripts are converted into newest-first callouts.
 
