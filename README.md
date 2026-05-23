@@ -7,7 +7,7 @@
 Parse, format, and archive [Obsidian-style callout](https://help.obsidian.md/callouts) threads.
 The async communication layer for humans and agents.
 
-![lang: bash + python](https://img.shields.io/badge/lang-bash%20%2B%20python-4EAA25?style=flat&logo=gnubash&logoColor=white)
+![lang: python + bash](https://img.shields.io/badge/lang-python%20%2B%20bash-3776AB?style=flat&logo=python&logoColor=white)
 [![tests: 60 passing](https://img.shields.io/badge/tests-60%20passing-brightgreen?style=flat)](test/)
 ![commands: 5](https://img.shields.io/badge/commands-5-blue?style=flat)
 ![license: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat)
@@ -27,8 +27,7 @@ $ cat HUMAN.md
 # A human writes raw thoughts anywhere in the file:
 
   [Or] We should add retry logic to the webhook handler.
-  [ikma] Agree — exponential backoff with jitter?
-  [Or] Yeah. Can you draft it?
+  [ikma] Agree — exponential backoff with jitter. I can draft it.
 
 $ threads fmt
 Formatted: converted 1 codeblock, promoted 1 to warning, sorted.
@@ -40,15 +39,11 @@ $ cat HUMAN.md
 > ...
 
 > [!warning]- TODO: title this thread 👈
+> **[ikma]** Agree — exponential backoff with jitter. I can draft it.
+>
+> ---
+>
 > **[Or]** We should add retry logic to the webhook handler.
->
-> ---
->
-> **[ikma]** Agree — exponential backoff with jitter?
->
-> ---
->
-> **[Or]** Yeah. Can you draft it?
 ```
 
 <br />
@@ -107,9 +102,11 @@ A threads file is plain markdown — a flat sequence of [Obsidian callouts](http
 - `[!abstract]-` — parked thought / someday-maybe
 - `[!success]-` — resolved (ready to archive)
 
-Messages within a thread start with `**[Name]**`, separated by `> ---` dividers. Arrow notation tracks rewrites: `**[Or → ikma]**` means "Or's words, as rewritten by ikma."
+Messages within a thread start with `**[Name]**`, newest-first, separated by `> ---` dividers. Add new replies at the top of the thread. Arrow notation tracks rewrites: `**[Or → ikma]**` means "Or's words, as rewritten by ikma."
 
-**Turn-taking drives automation.** The last sender determines who's waiting. If a human sent the last message, agents are waiting. If an agent replied, the human is waiting. `fmt` uses this to auto-promote legacy active threads to `[!warning]` when they need human attention, demote them back to `[!note]` when the human has replied, and sort callouts by lifecycle state. Explicit lifecycle callouts like `[!todo]`, `[!question]`, and `[!abstract]` keep their type.
+**Turn-taking drives automation.** The latest sender determines who's waiting. If a human sent the latest message, agents are waiting. If an agent replied, the human is waiting. `fmt` uses this to auto-promote legacy active threads to `[!warning]` when they need human attention, demote them back to `[!note]` when the human has replied, and sort callouts by lifecycle state. Explicit lifecycle callouts like `[!todo]`, `[!question]`, and `[!abstract]` keep their type.
+
+`fmt` treats existing message order as authoritative; it does not reshuffle messages inside established threads. Raw codeblock transcripts are converted into newest-first callouts.
 
 The human name defaults to `Or` but is configurable via `THREADS_HUMAN`. When unset, turn-taking is disabled — useful for peer-to-peer files like bulletin boards where there's no human in the loop.
 
@@ -122,10 +119,10 @@ $ threads ls
 ├───────────┼──────────────────────────────────────┼───────────────────┼────────────┤
 │ info      │ How this works                       │ —                 │ —          │
 │ attention │ Retry logic for webhook handler      │ Or+, ikma*        │ Or         │
-│ active    │ Refactor auth module                 │ ikma+*, Or        │ agent      │
+│ active    │ Refactor auth module                 │ ikma+, Or*        │ agent      │
 │ resolved  │ Fix CI timeout                       │ Or+, baby-joel*   │ resolved   │
 ╰───────────┴──────────────────────────────────────┴───────────────────┴────────────╯
-  + started thread  * last sender
+  + started thread  * latest sender
 
 $ threads fmt
 Formatted: promoted 1 to warning, sorted.
@@ -161,7 +158,7 @@ cd threads && mise trust && mise install
 mise run test
 ```
 
-**60 tests** across 6 suites. The parser is 229 lines of Python in `lib/human_threads.py`. Tasks are bash scripts that call into the parser for the heavy lifting. Templates use [farts](https://github.com/KnickKnackLabs/farts) for frontmatter.
+**60 tests** across 6 suites. The parser is 262 lines of Python in `lib/human_threads.py`. Core commands are Python mise file tasks that call into the shared parser; shell remains for small wrappers and tests. Templates use [farts](https://github.com/KnickKnackLabs/farts) for frontmatter.
 
 <details>
 <summary><b>Project structure</b></summary>

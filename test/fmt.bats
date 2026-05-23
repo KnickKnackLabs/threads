@@ -16,6 +16,10 @@ setup() {
   content=$(cat "$THREADS_PATH")
   [[ "$content" == *"[!note]"* ]] || [[ "$content" == *"[!warning]"* ]]
   [[ "$content" == *"**[Or]**"* ]]
+  local junior_pos or_pos
+  junior_pos=$(echo "$content" | grep -n "\*\*\[junior\]\*\*" | head -1 | cut -d: -f1)
+  or_pos=$(echo "$content" | grep -n "\*\*\[Or\]\*\*" | head -1 | cut -d: -f1)
+  [ "$junior_pos" -lt "$or_pos" ]
 }
 
 @test "fmt: ignores codeblocks without author markers" {
@@ -80,7 +84,7 @@ no authors here
   write_threads "$THREAD_OR_REWRITTEN_LAST"
   run threads fmt --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
-  # Or spoke last (via rewrite) — should wait on agent, so stays/becomes note
+  # Or spoke latest (via rewrite) — should wait on agent, so stays/becomes note
   run cat "$THREADS_PATH"
   [[ "$output" == *"[!note]"* ]]
 }
@@ -114,11 +118,11 @@ no authors here
 @test "fmt: nothing to format when already correct" {
   # Fixtures where types and order already match what fmt would produce
   local stable_warning='> [!warning]- Or needs to respond 👈
-> **[Or]** Started a thought.
+> **[junior]** Here is my reply.
 >
 > ---
 >
-> **[junior]** Here is my reply.'
+> **[Or]** Started a thought.'
   local stable_note='> [!note]- Agent should handle
 > **[Or]** Please do this.'
   write_threads "$stable_warning" "$stable_note" "$THREAD_SUCCESS"
@@ -131,11 +135,11 @@ no authors here
 
 @test "fmt --check: exits 0 when clean" {
   local stable_warning='> [!warning]- Or needs to respond 👈
-> **[Or]** Started a thought.
+> **[junior]** Here is my reply.
 >
 > ---
 >
-> **[junior]** Here is my reply.'
+> **[Or]** Started a thought.'
   local stable_note='> [!note]- Agent should handle
 > **[Or]** Please do this.'
   write_threads "$stable_warning" "$stable_note" "$THREAD_SUCCESS"
@@ -169,11 +173,11 @@ no authors here
   local info_thread='> [!info]- Instructions
 > How to use this file.'
   local stable_warning='> [!warning]- Or needs to respond \U0001f448
-> **[Or]** Started a thought.
+> **[junior]** Here is my reply.
 >
 > ---
 >
-> **[junior]** Here is my reply.'
+> **[Or]** Started a thought.'
   write_threads "$stable_warning" "$info_thread"
   run threads fmt --file "$THREADS_PATH"
   [ "$status" -eq 0 ]
