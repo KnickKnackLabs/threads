@@ -2,6 +2,8 @@
 #MISE description="List threads with status and who's waiting"
 #USAGE flag "--file <file>" default="" help="Path to threads file"
 
+import csv
+import io
 import os
 import subprocess
 import sys
@@ -85,7 +87,10 @@ else:
             ]
         )
 
-    table_input = "\n".join("\t".join(row) for row in rows) + "\n"
+    buffer = io.StringIO()
+    csv.writer(
+        buffer, delimiter="\t", quoting=csv.QUOTE_ALL, lineterminator="\n"
+    ).writerows(rows)
     run_gum(
         "table",
         "--print",
@@ -97,6 +102,6 @@ else:
         "240",
         "--header.foreground",
         "81",
-        input_text=table_input,
+        input_text=buffer.getvalue(),
     )
     run_gum("style", "--faint", "  + started thread  * latest sender")

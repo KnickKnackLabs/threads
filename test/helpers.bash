@@ -90,6 +90,12 @@ THREAD_OR_WAITING='> [!note]- Or should respond
 THREAD_NO_AUTHORS='> [!note]- Empty thread
 > No author markers here.'
 
+THREAD_QUOTED_TITLE='> [!note]- This has "quoted text" in the title
+> **[Zeke]** body content here.'
+
+THREAD_LEADING_QUOTE_TITLE='> [!note]- "Currently Implemented" tables are traps
+> **[Zeke]** body content here.'
+
 # Thread with arrow chain authorship convention
 THREAD_ARROW_CHAIN='> [!note]- Rewritten thread (Mar 15)
 > **[junior]** Looks good to me.

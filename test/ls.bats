@@ -69,3 +69,19 @@ setup() {
   [ "$status" -ne 0 ]
   [[ "$output" == *"No threads file found"* ]]
 }
+
+@test "ls: renders a title containing straight double quotes" {
+  write_threads "$THREAD_QUOTED_TITLE"
+
+  run threads ls --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'This has "quoted text" in the title'* ]]
+}
+
+@test "ls: keeps a leading double quote in a title" {
+  write_threads "$THREAD_LEADING_QUOTE_TITLE"
+
+  run threads ls --file "$THREADS_PATH"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'"Currently Implemented" tables are traps'* ]]
+}
